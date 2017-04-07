@@ -13,6 +13,7 @@ import sage.networking.client.GameConnectionClient;
 public class GameClientTCP extends GameConnectionClient{
 	private MyGameEngine game;
 	private UUID id;
+	private char avatarType;
 	private Vector<GhostAvatar> ghostAvatars;
 	
 	public GameClientTCP(InetAddress remAddr, int remPort, ProtocolType pType, MyGameEngine game) throws IOException{
@@ -45,25 +46,27 @@ public class GameClientTCP extends GameConnectionClient{
 			removeGhostAvatar(ghostID);
 		}
 		if(msgTokens[0].compareTo("dsfr") == 0){ //received details for
-			//format: dsfr, remoteID, x,y,z
+			//format: dsfr, remoteID, x,y,z, avatarType
 			UUID ghostID = UUID.fromString(msgTokens[1]);
 			//extract ghost x,y,z position from message
 			Vector3D ghostPosition = new Vector3D(Double.parseDouble(msgTokens[2]),Double.parseDouble(msgTokens[3]),Double.parseDouble(msgTokens[4]));
 			//then:
-			createGhostAvatar(ghostID, ghostPosition);
+			char remoteAvatar = msgTokens[5].charAt(0);
+			createGhostAvatar(ghostID, ghostPosition, remoteAvatar);
 		}
 		if(msgTokens[0].compareTo("create") == 0){ //received create
-			//format: create, remoteID, x,y,z
+			//format: create, remoteID, x,y,z, avatarType
 			UUID ghostID = UUID.fromString(msgTokens[1]);
 			//extract ghost x,y,z position from message
 			Vector3D ghostPosition = new Vector3D(Double.parseDouble(msgTokens[2]),Double.parseDouble(msgTokens[3]),Double.parseDouble(msgTokens[4]));
 			//then:
-			createGhostAvatar(ghostID, ghostPosition);
+			char remoteAvatar = msgTokens[5].charAt(0);
+			createGhostAvatar(ghostID, ghostPosition, remoteAvatar);
 		}
 		if(msgTokens[0].compareTo("wsds") == 0){ //received wants details
 			//format: wsds, remoteID
 			UUID remoteID = UUID.fromString(msgTokens[1]);
-			sendDetailsForMessage(remoteID, game.getPlayerPosition());
+			sendDetailsForMessage(remoteID, game.getPlayerPosition(), avatarType);
 		}
 		if(msgTokens[0].compareTo("move") == 0){ //received move
 			//format: move, remoteID, x,y,z
@@ -82,11 +85,13 @@ public class GameClientTCP extends GameConnectionClient{
 			message += "," + pos.getX();
 			message += "," + pos.getY();
 			message += "," + pos.getZ();
+			message += "," + avatarType;
 			sendPacket(message);
 		} catch(IOException e){ e.printStackTrace(); }
 	}
-	public void sendJoinMessage(){
+	public void sendJoinMessage(char playerAvatar){
 		//format: join, localID
+		avatarType = playerAvatar;
 		try{
 			sendPacket(new String("join," + id.toString()));
 		} catch(IOException e) { e.printStackTrace(); }
@@ -98,13 +103,14 @@ public class GameClientTCP extends GameConnectionClient{
 			System.out.println("Client Disconnected");
 		} catch(IOException e) { e.printStackTrace(); }
 	}
-	public void sendDetailsForMessage(UUID remID, Vector3D pos){
-		//format: dsfr, localID, remoteID
+	public void sendDetailsForMessage(UUID remID, Vector3D pos, char localAvatar){
+		//format: dsfr, localID, remoteID, localAvatar
 		try{
 			String message = new String("dsfr," + id.toString() + "," + remID.toString());
 			message += "," + pos.getX();
 			message += "," + pos.getY();
 			message += "," + pos.getZ();
+			message += "," + localAvatar;
 			sendPacket(message);
 		} catch(IOException e){ e.printStackTrace(); }
 	}
@@ -119,8 +125,8 @@ public class GameClientTCP extends GameConnectionClient{
 		} catch(IOException e){ e.printStackTrace(); }
 	}
 	
-	private void createGhostAvatar(UUID remID, Vector3D pos){
-		GhostAvatar avatar = new GhostAvatar(remID, pos);
+	private void createGhostAvatar(UUID remID, Vector3D pos, char remoteAvatar){
+		GhostAvatar avatar = new GhostAvatar(remID, pos, remoteAvatar);
 		ghostAvatars.add(avatar);
 		game.addGameWorldObject(avatar);
 	}

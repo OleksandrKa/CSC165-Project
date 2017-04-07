@@ -42,18 +42,20 @@ public class GameServerTCP extends GameConnectionServer<UUID>{
 				removeClient(clientID);
 			}
 			if(msgTokens[0].compareTo("create") == 0){ //received "create"
-				//format: create, localID, x,y,z
+				//format: create, localID, x,y,z, remoteAvatar
 				UUID clientID = UUID.fromString(msgTokens[1]);
 				String[] pos = {msgTokens[2],msgTokens[3],msgTokens[4]};
-				sendCreateMessages(clientID, pos);
+				char remoteAvatar = msgTokens[5].charAt(0);
+				sendCreateMessages(clientID, pos, remoteAvatar);
 				sendWantsDetailsMessages(clientID);
 			}
 			if(msgTokens[0].compareTo("dsfr") == 0){ //received "details for"
-				//format: dsfr, localID, remoteID, x,y,z
+				//format: dsfr, localID, remoteID, x,y,z, remoteAvatar
 				UUID clientID = UUID.fromString(msgTokens[1]);
 				UUID remoteID = UUID.fromString(msgTokens[2]);
 				String[] pos = {msgTokens[3],msgTokens[4],msgTokens[5]};
-				sendDetailsMessage(clientID, remoteID, pos);
+				char remoteAvatar = msgTokens[6].charAt(0);
+				sendDetailsMessage(clientID, remoteID, pos, remoteAvatar);
 			}
 			if(msgTokens[0].compareTo("move") == 0){ //received "move"
 				//format: move, localID, x,y,z
@@ -73,23 +75,25 @@ public class GameServerTCP extends GameConnectionServer<UUID>{
 			sendPacket(message, clientID);
 		} catch(IOException e){ e.printStackTrace(); }
 	}
-	public void sendCreateMessages(UUID clientID, String[] position){
-		//format: create, clientID, x,y,z
+	public void sendCreateMessages(UUID clientID, String[] position, char remoteAvatar){
+		//format: create, clientID, x,y,z, remoteAvatar
 		try{
 			String message = new String("create," + clientID.toString());
 			message += "," + position[0];
 			message += "," + position[1];
 			message += "," + position[2];
+			message += "," + remoteAvatar;
 			forwardPacketToAll(message, clientID);
 		} catch(IOException e){ e.printStackTrace(); }
 	}
-	public void sendDetailsMessage(UUID clientID, UUID remoteID, String[] position){
-		//format: dsfr, clientID, x,y,z
+	public void sendDetailsMessage(UUID clientID, UUID remoteID, String[] position, char remoteAvatar){
+		//format: dsfr, clientID, x,y,z, remoteAvatar
 		try{
 			String message = new String("dsfr," + clientID.toString());
 			message += "," + position[0];
 			message += "," + position[1];
 			message += "," + position[2];
+			message += "," + remoteAvatar;
 			sendPacket(message, remoteID);
 		} catch(IOException e){ e.printStackTrace(); }
 	}

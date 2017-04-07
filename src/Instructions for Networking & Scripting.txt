@@ -1,0 +1,4 @@
+Avatar type options:
+Pyramid & Cube
+
+Script does not do much, just (locally only) changes player object color. Will do more in later stages.

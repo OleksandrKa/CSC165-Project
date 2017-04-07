@@ -37,9 +37,7 @@ public class Starter {
 			}
 			
 			String[] msgTokens = myGameServer.getLocalInetAddress().toString().split("/");
-			
-		
-			MyGameEngine myGame = new MyGameEngine(msgTokens[1], port);
+			MyGameEngine myGame = new MyGameEngine(msgTokens[1], port, selectAvatar());
 			myGame.start();
 		}
 		else if(input.charAt(0) == 'j'){
@@ -47,8 +45,24 @@ public class Starter {
 			String ip = s.nextLine();
 			System.out.print("Enter server port: ");
 			int port = s.nextInt();
-			MyGameEngine myGame = new MyGameEngine(ip, port);
+			MyGameEngine myGame = new MyGameEngine(ip, port, selectAvatar());
 			myGame.start();
 		}
+	}
+	
+	public static char selectAvatar(){
+		char avatarType = 0;
+		Scanner s = new Scanner(System.in);
+		System.out.print("What avatar would you like? (p for pyramid, d for hollow pyramid)");
+		String avatar = s.nextLine();
+		if(avatar.charAt(0) == 'p'){
+			s.close();
+			return 'p';
+		}
+		else if(avatar.charAt(0) == 'd'){
+			s.close();
+			return 'd';
+		}
+		else return 0;
 	}
 }

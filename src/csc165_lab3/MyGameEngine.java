@@ -39,9 +39,10 @@ import java.io.IOException;
 
 import sage.networking.IGameConnection.ProtocolType;
 import csc165_lab3.*;
+import java.util.UUID;
 
 public class MyGameEngine extends BaseGame {
-	final boolean testOnSingleComputerFlag = false;
+	final boolean testOnSingleComputerFlag = true;
 	
 	private int player1Score = 0, player2Score = 0;
 	private float time = 0; // game elapsed time
@@ -69,13 +70,16 @@ public class MyGameEngine extends BaseGame {
 	private GameClientTCP thisClient;
 	private boolean isConnected;
 	
+	char playerAvatar;
+	
 
-	public MyGameEngine(String serverAddr, int sPort){
+	public MyGameEngine(String serverAddr, int sPort, char avatar){
 		// assumes main() passes server address, port to this.
 		super();
 		this.serverAddress = serverAddr;
 		this.serverPort = sPort;
 		this.serverProtocol = ProtocolType.TCP;
+		this.playerAvatar = avatar;
 	}
 	
 	public void initGame() {
@@ -95,7 +99,7 @@ public class MyGameEngine extends BaseGame {
 		catch(UnknownHostException e){ e.printStackTrace(); }
 		catch(IOException e)  { e.printStackTrace(); }
 		
-		if(thisClient != null) { thisClient.sendJoinMessage(); }
+		if(thisClient != null) { thisClient.sendJoinMessage(playerAvatar); }
 	}
 
 	protected void initSystem() {
@@ -108,7 +112,8 @@ public class MyGameEngine extends BaseGame {
 	}
 
 	private void initPlayers() {
-		player1 = new Pyramid("PLAYER1");
+		player1 = new GhostAvatar(UUID.fromString("00000000-0000-0000-0000-000000000000")
+								, new Vector3D(0,0,0), playerAvatar);
 		player1.translate(0, 0, 0);
 		player1.rotate(180, new Vector3D(0, 1, 0));
 		addGameWorldObject(player1);
