@@ -1,12 +1,24 @@
-public class MyClient extends GameConnectionClient{
-	private MyNetworkingClient game;
+package csc165_lab3;
+
+import java.io.IOException;
+import java.net.InetAddress;
+import java.util.UUID;
+import java.util.Vector;
+
+import sage.networking.server.GameConnectionServer;
+import sage.networking.server.IClientInfo;
+import graphicslib3D.Vector3D;
+import sage.networking.client.GameConnectionClient;
+
+public class GameClientTCP extends GameConnectionClient{
+	private MyGameEngine game;
 	private UUID id;
 	private Vector<GhostAvatar> ghostAvatars;
 	
-	public MyClient(InetAddress remAddr, int remPort, ProtocolType pType, myNetworkingClient game) throws IOException{
+	public GameClientTCP(InetAddress remAddr, int remPort, ProtocolType pType, MyGameEngine game) throws IOException{
 		super(remAddr, remPort, pType);
 		this.game = game;
-		this.id = UUID.random UUID();
+		this.id = UUID.randomUUID();
 		this.ghostAvatars = new Vector<GhostAvatar>();
 	}
 	
@@ -25,37 +37,37 @@ public class MyClient extends GameConnectionClient{
 				game.setIsConnected(false);
 			}
 		}
-		if(messageTokens[0].compareTo("bye") == 0){ //received bye
+		if(msgTokens[0].compareTo("bye") == 0){ //received bye
 			//format: bye, remoteID
-			UUID ghostID = UUID.fromString(messageTokens[1]);
+			UUID ghostID = UUID.fromString(msgTokens[1]);
 			removeGhostAvatar(ghostID);
 		}
-		if(messageTokens[0].compareTo("dsfr") == 0){ //received details for
+		if(msgTokens[0].compareTo("dsfr") == 0){ //received details for
 			//format: dsfr, remoteID, x,y,z
-			UUID ghostID = UUID.fromString(messageTokens[1]);
+			UUID ghostID = UUID.fromString(msgTokens[1]);
 			//extract ghost x,y,z position from message
-			Vector3D ghostPosition = new Vector3D(msgTokens[2],msgTokens[3],msgTokens[4]);
+			Vector3D ghostPosition = new Vector3D(Double.parseDouble(msgTokens[2]),Double.parseDouble(msgTokens[3]),Double.parseDouble(msgTokens[4]));
 			//then:
 			createGhostAvatar(ghostID, ghostPosition);
 		}
-		if(messageTokens[0].compareTo("create") == 0){ //received create
+		if(msgTokens[0].compareTo("create") == 0){ //received create
 			//format: create, remoteID, x,y,z
-			UUID ghostID = UUID.fromString(messageTokens[1]);
+			UUID ghostID = UUID.fromString(msgTokens[1]);
 			//extract ghost x,y,z position from message
-			Vector3D ghostPosition = new Vector3D(msgTokens[2],msgTokens[3],msgTokens[4]);
+			Vector3D ghostPosition = new Vector3D(Double.parseDouble(msgTokens[2]),Double.parseDouble(msgTokens[3]),Double.parseDouble(msgTokens[4]));
 			//then:
 			createGhostAvatar(ghostID, ghostPosition);
 		}
-		if(messageTokens[0].compareTo("wsds") == 0){ //received wants details
+		if(msgTokens[0].compareTo("wsds") == 0){ //received wants details
 			//format: wsds, remoteID
-			UUID remoteID = UUID.fromString(messageTokens[1]);
+			UUID remoteID = UUID.fromString(msgTokens[1]);
 			sendDetailsForMessage(remoteID, game.getPlayerPosition());
 		}
-		if(messageTokens[0].compareTo("move") == 0){ //received move
+		if(msgTokens[0].compareTo("move") == 0){ //received move
 			//format: move, remoteID, x,y,z
-			UUID ghostID = UUID.fromString(messageTokens[1]);
+			UUID ghostID = UUID.fromString(msgTokens[1]);
 			//extract ghost new x,y,z position from message
-			Vector3D ghostPosition = new Vector3D(msgTokens[2],msgTokens[3],msgTokens[4]);
+			Vector3D ghostPosition = new Vector3D(Double.parseDouble(msgTokens[2]),Double.parseDouble(msgTokens[3]),Double.parseDouble(msgTokens[4]));
 			//then:
 			moveGhostAvatar(ghostID, ghostPosition);
 		}
@@ -102,5 +114,26 @@ public class MyClient extends GameConnectionClient{
 			message += "," + pos.getZ();
 			sendPacket(message);
 		} catch(IOException e){ e.printStackTrace(); }
+	}
+	
+	private void createGhostAvatar(UUID remID, Vector3D pos){
+		GhostAvatar avatar = new GhostAvatar(remID, pos);
+		ghostAvatars.add(avatar);
+		game.addGameWorldObject(avatar);
+	}
+	private void removeGhostAvatar(UUID remID){
+		for(GhostAvatar g : ghostAvatars){
+			if(g.id == remID){
+				game.removeGameWorldObject(g);
+				ghostAvatars.remove(g);
+			}
+		}
+	}
+	private void moveGhostAvatar(UUID remID, Vector3D ghostPos){
+		for(GhostAvatar g : ghostAvatars){
+			if(g.id == remID){
+				g.pos = ghostPos;
+			}
+		}
 	}
 }

@@ -33,6 +33,12 @@ import java.awt.DisplayMode;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 import java.text.DecimalFormat;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.io.IOException;
+
+import sage.networking.IGameConnection.ProtocolType;
+import csc165_lab3.*;
 
 public class MyGameEngine extends BaseGame {
 	private int player1Score = 0, player2Score = 0;
@@ -54,7 +60,22 @@ public class MyGameEngine extends BaseGame {
 	ICamera camera1, camera2;
 	IInputManager im;
 	FindComponents f;
+	
+	private String serverAddress;
+	private int serverPort;
+	private ProtocolType serverProtocol;
+	private GameClientTCP thisClient;
+	private boolean isConnected;
+	
 
+	public MyGameEngine(String serverAddr, int sPort){
+		// assumes main() passes server address, port to this.
+		super();
+		this.serverAddress = serverAddr;
+		this.serverPort = sPort;
+		this.serverProtocol = ProtocolType.TCP;
+	}
+	
 	public void initGame() {
 		display = getDisplaySystem();
 		System.out.println(display.getRenderer().toString());
@@ -65,6 +86,13 @@ public class MyGameEngine extends BaseGame {
 		initGameObjects();
 		initPlayers();
 		inputHandler();
+		//items as before, plus initializing network:
+		try{
+			thisClient = new GameClientTCP(InetAddress.getByName(serverAddress), serverPort, serverProtocol, this); }
+		catch(UnknownHostException e){ e.printStackTrace(); }
+		catch(IOException e)  { e.printStackTrace(); }
+		
+		if(thisClient != null) { thisClient.sendJoinMessage(); }
 	}
 
 	protected void initSystem() {
@@ -132,7 +160,7 @@ public class MyGameEngine extends BaseGame {
 	private void initGameObjects() {
 		ran = new Random();
 
-		
+		/*
 		// construct a skybox for the scene
 		skybox = new SkyBox("SkyBox", 20.0f, 20.0f, 20.0f);
 		// load skybox textures
@@ -152,7 +180,7 @@ public class MyGameEngine extends BaseGame {
 		skybox.setTexture(SkyBox.Face.Up, topTex);
 		skybox.setTexture(SkyBox.Face.Down, bottomTex);
 		addGameWorldObject(skybox);
-		
+		*/
 		plants = new Group("root");
 		for (int i = 1; i <= 20; i++) {
 			randX = ran.nextInt(62) + 0;
@@ -192,7 +220,7 @@ public class MyGameEngine extends BaseGame {
 		Point3D camLoc = camera1.getLocation();
 		Matrix3D camTranslation = new Matrix3D();
 		camTranslation.translate(camLoc.getX(), camLoc.getY(), camLoc.getZ());
-		skybox.setLocalTranslation(camTranslation);
+		//skybox.setLocalTranslation(camTranslation);
 		
 		// Loops through SceneNodes
 		for (SceneNode node : getGameWorld()) {
@@ -226,12 +254,11 @@ public class MyGameEngine extends BaseGame {
 		player1Cam.update(elapsedTimeMS);
 		//player2Cam.update(elapsedTimeMS);
 
+		//same as before, plus process any packets received from server:
+		if(thisClient != null) thisClient.processPackets();
+		
 		// tell BaseGame to update game world state
 		super.update(elapsedTimeMS);
-	}
-
-	public void addGameWorldObject(SceneNode s) {
-		super.addGameWorldObject(s);
 	}
 
 	public void inputHandler() {
@@ -269,8 +296,8 @@ public class MyGameEngine extends BaseGame {
 				IInputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
 
 		// List out controllers
-		f = new FindComponents();
-		f.listControllers();
+		//f = new FindComponents();
+		//f.listControllers();
 	}
 
 	private IDisplaySystem createDisplaySystem() {
@@ -317,5 +344,29 @@ public class MyGameEngine extends BaseGame {
 
 	public void start() {
 		super.start();
+	}
+	
+	protected void shutdown(){
+		super.shutdown();
+		if(thisClient != null){
+			thisClient.sendByeMessage();
+			try{ thisClient.shutdown(); }
+			catch(IOException e){ e.printStackTrace(); }
+		}
+	}
+	
+	public void setIsConnected(boolean flag){
+		isConnected = flag;
+	}
+	
+	public Vector3D getPlayerPosition(){
+		return new Vector3D(camera1.getLocation().getX(),camera1.getLocation().getY(),camera1.getLocation().getZ());
+	}
+	
+	public void addGameWorldObject(SceneNode s){
+		super.addGameWorldObject(s);
+	}
+	public boolean removeGameWorldObject(SceneNode s){
+		return super.removeGameWorldObject(s);
 	}
 }

@@ -1,4 +1,4 @@
-package myGameEngine;
+package csc165_lab3;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -6,10 +6,11 @@ import java.util.UUID;
 
 import sage.networking.server.GameConnectionServer;
 import sage.networking.server.IClientInfo;
+import csc165_lab3.*;
 
 public class GameServerTCP extends GameConnectionServer<UUID>{
 	
-	public TestGameServerTCP(int localPort) throws IOException{
+	public GameServerTCP(int localPort) throws IOException{
 		super(localPort, ProtocolType.TCP);
 	}
 	
@@ -23,11 +24,12 @@ public class GameServerTCP extends GameConnectionServer<UUID>{
 				UUID clientID = UUID.fromString(messageTokens[1]);
 				addClient(ci, clientID);
 				sendJoinedMessage(clientID, true);
+				System.out.println("client joined server");
 			}
 		}
 	}
 	
-	public void processPacket(Objcet o, InetAddress senderIP, int sndPort){
+	public void processPacket(Object o, InetAddress senderIP, int sndPort){
 		String message = (String) o;
 		String[] msgTokens = message.split(",");
 		
@@ -42,21 +44,21 @@ public class GameServerTCP extends GameConnectionServer<UUID>{
 			if(msgTokens[0].compareTo("create") == 0){ //received "create"
 				//format: create, localID, x,y,z
 				UUID clientID = UUID.fromString(msgTokens[1]);
-				String[] pos = {msgTokens[2],msgTokens[3],msgTokens[4])};
+				String[] pos = {msgTokens[2],msgTokens[3],msgTokens[4]};
 				sendCreateMessages(clientID, pos);
-				sendWantsDetailMessages(clientID);
+				sendWantsDetailsMessages(clientID);
 			}
 			if(msgTokens[0].compareTo("dsfr") == 0){ //received "details for"
 				//format: dsfr, localID, remoteID, x,y,z
 				UUID clientID = UUID.fromString(msgTokens[1]);
 				UUID remoteID = UUID.fromString(msgTokens[2]);
-				String[] pos = {msgTokens[3],msgTokens[4],msgTokens[5])};
+				String[] pos = {msgTokens[3],msgTokens[4],msgTokens[5]};
 				sendDetailsMessage(clientID, remoteID, pos);
 			}
 			if(msgTokens[0].compareTo("move") == 0){ //received "move"
 				//format: move, localID, x,y,z
 				UUID clientID = UUID.fromString(msgTokens[1]);
-				String[] pos = {msgTokens[2],msgTokens[3],msgTokens[4])};
+				String[] pos = {msgTokens[2],msgTokens[3],msgTokens[4]};
 				sendMoveMessages(clientID, pos);
 			}
 		}
@@ -95,7 +97,7 @@ public class GameServerTCP extends GameConnectionServer<UUID>{
 		//format: wsds, clientID
 		try{
 			String message = new String("wsds," + clientID.toString());
-			forwardPacketToAll(message, clientID)
+			forwardPacketToAll(message, clientID);
 		} catch(IOException e){ e.printStackTrace(); }
 	}
 	public void sendMoveMessages(UUID clientID, String[] position){
@@ -112,7 +114,7 @@ public class GameServerTCP extends GameConnectionServer<UUID>{
 		//format: bye, clientID
 		try{
 			String message = new String("bye," + clientID.toString());
-			forwardPacketToAll(message, clientID)
+			forwardPacketToAll(message, clientID);
 		} catch(IOException e){ e.printStackTrace(); }
 	}
 }
