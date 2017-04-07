@@ -41,6 +41,13 @@ import sage.networking.IGameConnection.ProtocolType;
 import csc165_lab3.*;
 import java.util.UUID;
 
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineFactory;
+import javax.script.ScriptEngineManager;
+import javax.script.ScriptException;
+import java.io.*;
+import java.util.*;
+
 public class MyGameEngine extends BaseGame {
 	final boolean testOnSingleComputerFlag = true;
 	
@@ -83,6 +90,23 @@ public class MyGameEngine extends BaseGame {
 	}
 	
 	public void initGame() {
+		
+		ScriptEngineManager factory = new ScriptEngineManager();
+		String scriptFileName = "init.js";
+		
+		//get a list of the script engines on this platform
+		List<ScriptEngineFactory> list = factory.getEngineFactories();
+		ScriptEngine jsEngine = factory.getEngineByName("js");
+		
+		this.executeScript(jsEngine, scriptFileName);
+		
+		Line xAxis = (Line) jsEngine.get("xAxis");
+		addGameWorldObject(xAxis);
+		Line yAxis = (Line) jsEngine.get("yAxis");
+		addGameWorldObject(xAxis);
+		Line zAxis = (Line) jsEngine.get("zAxis");
+		addGameWorldObject(xAxis);
+		
 		display = getDisplaySystem();
 		System.out.println(display.getRenderer().toString());
 		display.setTitle("SpaceFarming3D - Part 2!");
@@ -211,7 +235,7 @@ public class MyGameEngine extends BaseGame {
 		plane.setColor(Color.GRAY);
 		plane.rotate(90, new Vector3D(1, 0, 0));
 		addGameWorldObject(plane); */
-
+/*
 		Point3D origin = new Point3D(0, 0, 0);
 		Point3D xEnd = new Point3D(100, 0, 0);
 		Point3D yEnd = new Point3D(0, 100, 0);
@@ -221,7 +245,7 @@ public class MyGameEngine extends BaseGame {
 		Line zAxis = new Line(origin, zEnd, Color.blue, 2);
 		addGameWorldObject(xAxis);
 		addGameWorldObject(yAxis);
-		addGameWorldObject(zAxis);
+		addGameWorldObject(zAxis);*/
 	}
 
 	// update is called by BaseGame once each time around game loop
@@ -381,5 +405,21 @@ public class MyGameEngine extends BaseGame {
 	}
 	public boolean removeGameWorldObject(SceneNode s){
 		return super.removeGameWorldObject(s);
+	}
+	
+	private void executeScript(ScriptEngine engine, String scriptFileName){
+		try{
+			FileReader fileReader = new FileReader(scriptFileName);
+			engine.eval(fileReader);
+			fileReader.close();
+		}
+		catch (FileNotFoundException e1)
+		{  System.out.println(scriptFileName + " not found " + e1); }
+		catch (IOException e2)
+		{  System.out.println("IO problem with " + scriptFileName + e2); }
+		catch (ScriptException e3)
+		{ System.out.println("ScriptException in " + scriptFileName + e3); }
+		catch (NullPointerException e4)
+		{ System.out.println ("Null ptr exception in " + scriptFileName + e4); }
 	}
 }
