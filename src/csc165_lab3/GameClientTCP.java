@@ -32,9 +32,11 @@ public class GameClientTCP extends GameConnectionClient{
 			if(msgTokens[1].compareTo("success") == 0){
 				game.setIsConnected(true);
 				sendCreateMessage(game.getPlayerPosition());
+				System.out.println("Client Connected");			
 			}
 			if(msgTokens[1].compareTo("failure") == 0){
 				game.setIsConnected(false);
+				System.out.println("Client Connection Failed");			
 			}
 		}
 		if(msgTokens[0].compareTo("bye") == 0){ //received bye
@@ -93,6 +95,7 @@ public class GameClientTCP extends GameConnectionClient{
 		//format: bye, localID
 		try{
 			sendPacket(new String("bye," + id.toString()));
+			System.out.println("Client Disconnected");
 		} catch(IOException e) { e.printStackTrace(); }
 	}
 	public void sendDetailsForMessage(UUID remID, Vector3D pos){

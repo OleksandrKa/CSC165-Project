@@ -2,6 +2,10 @@ package csc165_lab3;
 
 import java.io.IOException;
 import java.util.Scanner;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 import csc165_lab3.*;
 import csc165_lab3.MyGameEngine;
@@ -16,8 +20,24 @@ public class Starter {
 			System.out.print("Enter hosting port: ");
 			int port = s.nextInt();
 			GameServerTCP myGameServer = new GameServerTCP(port);
+			//Get external IP so user doesn't have to look it up themselves:
+			URL ipAdress;
+
+			try {
+				ipAdress = new URL("http://myexternalip.com/raw");
+
+				BufferedReader in = new BufferedReader(new InputStreamReader(ipAdress.openStream()));
+
+				String ip = in.readLine();
+				System.out.println("Server Started at address " + ip + ", port " + port + ".");
+			} catch (MalformedURLException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			
 			String[] msgTokens = myGameServer.getLocalInetAddress().toString().split("/");
-			System.out.println("Server Started at address " + myGameServer.getLocalInetAddress().toString() + ", port " + port + ".");
+			
 		
 			MyGameEngine myGame = new MyGameEngine(msgTokens[1], port);
 			myGame.start();

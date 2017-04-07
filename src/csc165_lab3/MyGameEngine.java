@@ -41,6 +41,8 @@ import sage.networking.IGameConnection.ProtocolType;
 import csc165_lab3.*;
 
 public class MyGameEngine extends BaseGame {
+	final boolean testOnSingleComputerFlag = false;
+	
 	private int player1Score = 0, player2Score = 0;
 	private float time = 0; // game elapsed time
 	private float speed = 0.02f;
@@ -88,7 +90,8 @@ public class MyGameEngine extends BaseGame {
 		inputHandler();
 		//items as before, plus initializing network:
 		try{
-			thisClient = new GameClientTCP(InetAddress.getByName(serverAddress), serverPort, serverProtocol, this); }
+			thisClient = new GameClientTCP(InetAddress.getByName(serverAddress), serverPort, serverProtocol, this);
+		}
 		catch(UnknownHostException e){ e.printStackTrace(); }
 		catch(IOException e)  { e.printStackTrace(); }
 		
@@ -160,7 +163,8 @@ public class MyGameEngine extends BaseGame {
 	private void initGameObjects() {
 		ran = new Random();
 
-		/*
+		//#ifndef TESTONSINGLECOMPUTER
+		if(testOnSingleComputerFlag == false){
 		// construct a skybox for the scene
 		skybox = new SkyBox("SkyBox", 20.0f, 20.0f, 20.0f);
 		// load skybox textures
@@ -180,7 +184,8 @@ public class MyGameEngine extends BaseGame {
 		skybox.setTexture(SkyBox.Face.Up, topTex);
 		skybox.setTexture(SkyBox.Face.Down, bottomTex);
 		addGameWorldObject(skybox);
-		*/
+		}//#endif
+		
 		plants = new Group("root");
 		for (int i = 1; i <= 20; i++) {
 			randX = ran.nextInt(62) + 0;
@@ -220,7 +225,10 @@ public class MyGameEngine extends BaseGame {
 		Point3D camLoc = camera1.getLocation();
 		Matrix3D camTranslation = new Matrix3D();
 		camTranslation.translate(camLoc.getX(), camLoc.getY(), camLoc.getZ());
-		//skybox.setLocalTranslation(camTranslation);
+		//#ifndef TESTONSINGLECOMPUTER
+		if(testOnSingleComputerFlag == false)
+		skybox.setLocalTranslation(camTranslation);
+		//#endif
 		
 		// Loops through SceneNodes
 		for (SceneNode node : getGameWorld()) {

@@ -24,7 +24,7 @@ public class GameServerTCP extends GameConnectionServer<UUID>{
 				UUID clientID = UUID.fromString(messageTokens[1]);
 				addClient(ci, clientID);
 				sendJoinedMessage(clientID, true);
-				System.out.println("client joined server");
+				System.out.println("Client Connected to Server");
 			}
 		}
 	}
@@ -115,6 +115,7 @@ public class GameServerTCP extends GameConnectionServer<UUID>{
 		try{
 			String message = new String("bye," + clientID.toString());
 			forwardPacketToAll(message, clientID);
+			System.out.println("Client Disconnected from Server");
 		} catch(IOException e){ e.printStackTrace(); }
 	}
 }
