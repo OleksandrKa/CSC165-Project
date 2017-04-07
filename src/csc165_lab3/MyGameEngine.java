@@ -33,8 +33,24 @@ import java.awt.DisplayMode;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 import java.text.DecimalFormat;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.io.IOException;
+
+import sage.networking.IGameConnection.ProtocolType;
+import csc165_lab3.*;
+import java.util.UUID;
+
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineFactory;
+import javax.script.ScriptEngineManager;
+import javax.script.ScriptException;
+import java.io.*;
+import java.util.*;
 
 public class MyGameEngine extends BaseGame {
+	final boolean testOnSingleComputerFlag = true;
+	
 	private int player1Score = 0, player2Score = 0;
 	private float time = 0; // game elapsed time
 	private float speed = 0.02f;
@@ -54,8 +70,43 @@ public class MyGameEngine extends BaseGame {
 	ICamera camera1, camera2;
 	IInputManager im;
 	FindComponents f;
+	
+	private String serverAddress;
+	private int serverPort;
+	private ProtocolType serverProtocol;
+	private GameClientTCP thisClient;
+	private boolean isConnected;
+	
+	char playerAvatar;
+	
 
+	public MyGameEngine(String serverAddr, int sPort, char avatar){
+		// assumes main() passes server address, port to this.
+		super();
+		this.serverAddress = serverAddr;
+		this.serverPort = sPort;
+		this.serverProtocol = ProtocolType.TCP;
+		this.playerAvatar = avatar;
+	}
+	
 	public void initGame() {
+		
+		ScriptEngineManager factory = new ScriptEngineManager();
+		String scriptFileName = "init.js";
+		
+		//get a list of the script engines on this platform
+		List<ScriptEngineFactory> list = factory.getEngineFactories();
+		ScriptEngine jsEngine = factory.getEngineByName("js");
+		
+		this.executeScript(jsEngine, scriptFileName);
+		
+		Line xAxis = (Line) jsEngine.get("xAxis");
+		addGameWorldObject(xAxis);
+		Line yAxis = (Line) jsEngine.get("yAxis");
+		addGameWorldObject(xAxis);
+		Line zAxis = (Line) jsEngine.get("zAxis");
+		addGameWorldObject(xAxis);
+		
 		display = getDisplaySystem();
 		System.out.println(display.getRenderer().toString());
 		display.setTitle("SpaceFarming3D - Part 2!");
@@ -65,6 +116,14 @@ public class MyGameEngine extends BaseGame {
 		initGameObjects();
 		initPlayers();
 		inputHandler();
+		//items as before, plus initializing network:
+		try{
+			thisClient = new GameClientTCP(InetAddress.getByName(serverAddress), serverPort, serverProtocol, this);
+		}
+		catch(UnknownHostException e){ e.printStackTrace(); }
+		catch(IOException e)  { e.printStackTrace(); }
+		
+		if(thisClient != null) { thisClient.sendJoinMessage(playerAvatar); }
 	}
 
 	protected void initSystem() {
@@ -77,7 +136,8 @@ public class MyGameEngine extends BaseGame {
 	}
 
 	private void initPlayers() {
-		player1 = new Pyramid("PLAYER1");
+		player1 = new GhostAvatar(UUID.fromString("00000000-0000-0000-0000-000000000000")
+								, new Vector3D(0,0,0), playerAvatar);
 		player1.translate(0, 0, 0);
 		player1.rotate(180, new Vector3D(0, 1, 0));
 		addGameWorldObject(player1);
@@ -132,7 +192,8 @@ public class MyGameEngine extends BaseGame {
 	private void initGameObjects() {
 		ran = new Random();
 
-		
+		//#ifndef TESTONSINGLECOMPUTER
+		if(testOnSingleComputerFlag == false){
 		// construct a skybox for the scene
 		skybox = new SkyBox("SkyBox", 20.0f, 20.0f, 20.0f);
 		// load skybox textures
@@ -152,6 +213,7 @@ public class MyGameEngine extends BaseGame {
 		skybox.setTexture(SkyBox.Face.Up, topTex);
 		skybox.setTexture(SkyBox.Face.Down, bottomTex);
 		addGameWorldObject(skybox);
+		}//#endif
 		
 		plants = new Group("root");
 		for (int i = 1; i <= 20; i++) {
@@ -173,7 +235,7 @@ public class MyGameEngine extends BaseGame {
 		plane.setColor(Color.GRAY);
 		plane.rotate(90, new Vector3D(1, 0, 0));
 		addGameWorldObject(plane); */
-
+/*
 		Point3D origin = new Point3D(0, 0, 0);
 		Point3D xEnd = new Point3D(100, 0, 0);
 		Point3D yEnd = new Point3D(0, 100, 0);
@@ -183,7 +245,7 @@ public class MyGameEngine extends BaseGame {
 		Line zAxis = new Line(origin, zEnd, Color.blue, 2);
 		addGameWorldObject(xAxis);
 		addGameWorldObject(yAxis);
-		addGameWorldObject(zAxis);
+		addGameWorldObject(zAxis);*/
 	}
 
 	// update is called by BaseGame once each time around game loop
@@ -192,7 +254,10 @@ public class MyGameEngine extends BaseGame {
 		Point3D camLoc = camera1.getLocation();
 		Matrix3D camTranslation = new Matrix3D();
 		camTranslation.translate(camLoc.getX(), camLoc.getY(), camLoc.getZ());
+		//#ifndef TESTONSINGLECOMPUTER
+		if(testOnSingleComputerFlag == false)
 		skybox.setLocalTranslation(camTranslation);
+		//#endif
 		
 		// Loops through SceneNodes
 		for (SceneNode node : getGameWorld()) {
@@ -226,12 +291,11 @@ public class MyGameEngine extends BaseGame {
 		player1Cam.update(elapsedTimeMS);
 		//player2Cam.update(elapsedTimeMS);
 
+		//same as before, plus process any packets received from server:
+		if(thisClient != null) thisClient.processPackets();
+		
 		// tell BaseGame to update game world state
 		super.update(elapsedTimeMS);
-	}
-
-	public void addGameWorldObject(SceneNode s) {
-		super.addGameWorldObject(s);
 	}
 
 	public void inputHandler() {
@@ -269,8 +333,8 @@ public class MyGameEngine extends BaseGame {
 				IInputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
 
 		// List out controllers
-		f = new FindComponents();
-		f.listControllers();
+		//f = new FindComponents();
+		//f.listControllers();
 	}
 
 	private IDisplaySystem createDisplaySystem() {
@@ -317,5 +381,45 @@ public class MyGameEngine extends BaseGame {
 
 	public void start() {
 		super.start();
+	}
+	
+	protected void shutdown(){
+		super.shutdown();
+		if(thisClient != null){
+			thisClient.sendByeMessage();
+			try{ thisClient.shutdown(); }
+			catch(IOException e){ e.printStackTrace(); }
+		}
+	}
+	
+	public void setIsConnected(boolean flag){
+		isConnected = flag;
+	}
+	
+	public Vector3D getPlayerPosition(){
+		return new Vector3D(camera1.getLocation().getX(),camera1.getLocation().getY(),camera1.getLocation().getZ());
+	}
+	
+	public void addGameWorldObject(SceneNode s){
+		super.addGameWorldObject(s);
+	}
+	public boolean removeGameWorldObject(SceneNode s){
+		return super.removeGameWorldObject(s);
+	}
+	
+	private void executeScript(ScriptEngine engine, String scriptFileName){
+		try{
+			FileReader fileReader = new FileReader(scriptFileName);
+			engine.eval(fileReader);
+			fileReader.close();
+		}
+		catch (FileNotFoundException e1)
+		{  System.out.println(scriptFileName + " not found " + e1); }
+		catch (IOException e2)
+		{  System.out.println("IO problem with " + scriptFileName + e2); }
+		catch (ScriptException e3)
+		{ System.out.println("ScriptException in " + scriptFileName + e3); }
+		catch (NullPointerException e4)
+		{ System.out.println ("Null ptr exception in " + scriptFileName + e4); }
 	}
 }
