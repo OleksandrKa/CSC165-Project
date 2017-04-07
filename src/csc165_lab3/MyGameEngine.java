@@ -16,6 +16,11 @@ import sage.scene.SceneNode;
 import sage.scene.SkyBox;
 import sage.scene.TriMesh;
 import sage.scene.shape.*;
+import sage.scene.state.RenderState.RenderStateType;
+import sage.scene.state.TextureState;
+import sage.terrain.AbstractHeightMap;
+import sage.terrain.HillHeightMap;
+import sage.terrain.TerrainBlock;
 import sage.texture.Texture;
 import sage.texture.TextureManager;
 import sage.scene.Group;
@@ -48,6 +53,7 @@ public class MyGameEngine extends BaseGame {
 	private SceneNode player1, player2;
 	private SkyBox skybox;
 	private Group plants;
+	private TerrainBlock hillTerrain; 
 	private IRenderer renderer;
 	DisplaySettingsDialog displayDialog;
 	IDisplaySystem display;
@@ -63,6 +69,7 @@ public class MyGameEngine extends BaseGame {
 		im = getInputManager();
 		eventMg = EventManager.getInstance();
 		initGameObjects();
+		initTerrain();
 		initPlayers();
 		inputHandler();
 	}
@@ -78,14 +85,14 @@ public class MyGameEngine extends BaseGame {
 
 	private void initPlayers() {
 		player1 = new Pyramid("PLAYER1");
-		player1.translate(0, 0, 0);
-		player1.rotate(180, new Vector3D(0, 1, 0));
+		player1.translate(0, 5, 0);
+		// player1.rotate(180, new Vector3D(0, 1, 0));
 		addGameWorldObject(player1);
 
 		camera1 = new JOGLCamera(renderer);
-		//camera1.setPerspectiveFrustum(60, 2, 1, 1000);
-		//camera1.setViewDirection(new Vector3D(-1, 0, 1));
-		//camera1.setViewport(0.0, 1.0, 0.0, 0.45);
+		// camera1.setPerspectiveFrustum(60, 2, 1, 1000);
+		// camera1.setViewDirection(new Vector3D(-1, 0, 1));
+		// camera1.setViewport(0.0, 1.0, 0.0, 0.45);
 
 		player2 = new Cube("PLAYER2");
 		player2.translate(50, 1, 0);
@@ -132,7 +139,6 @@ public class MyGameEngine extends BaseGame {
 	private void initGameObjects() {
 		ran = new Random();
 
-		
 		// construct a skybox for the scene
 		skybox = new SkyBox("SkyBox", 20.0f, 20.0f, 20.0f);
 		// load skybox textures
@@ -142,8 +148,8 @@ public class MyGameEngine extends BaseGame {
 		Texture rightTex = TextureManager.loadTexture2D("./images/lakes_rt.bmp");
 		Texture topTex = TextureManager.loadTexture2D("./images/lakes_up.bmp");
 		Texture bottomTex = TextureManager.loadTexture2D("./images/lakes_dn.bmp");
-		
-		//...etc...
+
+		// ...etc...
 		// attach textures to skybox
 		skybox.setTexture(SkyBox.Face.North, frontTex);
 		skybox.setTexture(SkyBox.Face.South, backTex);
@@ -152,7 +158,7 @@ public class MyGameEngine extends BaseGame {
 		skybox.setTexture(SkyBox.Face.Up, topTex);
 		skybox.setTexture(SkyBox.Face.Down, bottomTex);
 		addGameWorldObject(skybox);
-		
+
 		plants = new Group("root");
 		for (int i = 1; i <= 20; i++) {
 			randX = ran.nextInt(62) + 0;
@@ -165,14 +171,14 @@ public class MyGameEngine extends BaseGame {
 
 		addGameWorldObject(plants);
 		GrowController gc = new GrowController();
-		//gc.addControlledNode(plants);
-		//plants.addController(gc);
+		// gc.addControlledNode(plants);
+		// plants.addController(gc);
 
-		/*float planeSize = 125.0f;
-		Rectangle plane = new Rectangle(planeSize, planeSize);
-		plane.setColor(Color.GRAY);
-		plane.rotate(90, new Vector3D(1, 0, 0));
-		addGameWorldObject(plane); */
+		/*
+		 * float planeSize = 125.0f; Rectangle plane = new Rectangle(planeSize,
+		 * planeSize); plane.setColor(Color.GRAY); plane.rotate(90, new
+		 * Vector3D(1, 0, 0)); addGameWorldObject(plane);
+		 */
 
 		Point3D origin = new Point3D(0, 0, 0);
 		Point3D xEnd = new Point3D(100, 0, 0);
@@ -186,6 +192,37 @@ public class MyGameEngine extends BaseGame {
 		addGameWorldObject(zAxis);
 	}
 
+	private void initTerrain() { // create height map and terrain block
+		HillHeightMap myHillHeightMap = new HillHeightMap(129, 2000, 5.0f, 20.0f, (byte) 2, 12345);
+		myHillHeightMap.setHeightScale(0.1f);
+		hillTerrain = createTerBlock(myHillHeightMap);
+		// create texture and texture state to color the terrain
+		TextureState grassState;
+		Texture grassTexture = TextureManager.loadTexture2D("./images/grass.jpg");
+		grassTexture.setWrapMode(Texture.WrapMode.Repeat);
+		grassTexture.setApplyMode(sage.texture.Texture.ApplyMode.Replace);
+		grassState = (TextureState) display.getRenderer().createRenderState(RenderStateType.Texture);
+		grassState.setTexture(grassTexture, 0);
+		grassState.setEnabled(true);
+		// apply the texture to the terrain
+		hillTerrain.setRenderState(grassState);
+		addGameWorldObject(hillTerrain);
+	}
+
+	private TerrainBlock createTerBlock(AbstractHeightMap heightMap) {
+		float heightScale = 0.05f;
+		Vector3D terrainScale = new Vector3D(1, heightScale, 1);
+		// use the size of the height map as the size of the terrain
+		int terrainSize = heightMap.getSize();
+		// specify terrain origin so heightmap (0,0) is at world origin
+		float cornerHeight = heightMap.getTrueHeightAtPoint(0, 0) * heightScale;
+		Point3D terrainOrigin = new Point3D(0, -cornerHeight, 0);
+		// create a terrain block using the height map
+		String name = "Terrain:" + heightMap.getClass().getSimpleName();
+		TerrainBlock tb = new TerrainBlock(name, terrainSize, terrainScale, heightMap.getHeightData(), terrainOrigin);
+		return tb;
+	}
+
 	// update is called by BaseGame once each time around game loop
 	public void update(float elapsedTimeMS) {
 
@@ -193,7 +230,7 @@ public class MyGameEngine extends BaseGame {
 		Matrix3D camTranslation = new Matrix3D();
 		camTranslation.translate(camLoc.getX(), camLoc.getY(), camLoc.getZ());
 		skybox.setLocalTranslation(camTranslation);
-		
+
 		// Loops through SceneNodes
 		for (SceneNode node : getGameWorld()) {
 			// If object is a sphere (plant), then check if plant intersects
@@ -224,7 +261,7 @@ public class MyGameEngine extends BaseGame {
 
 		// update 3P controllers
 		player1Cam.update(elapsedTimeMS);
-		//player2Cam.update(elapsedTimeMS);
+		// player2Cam.update(elapsedTimeMS);
 
 		// tell BaseGame to update game world state
 		super.update(elapsedTimeMS);
@@ -235,27 +272,31 @@ public class MyGameEngine extends BaseGame {
 	}
 
 	public void inputHandler() {
-		//String gpName = im.getFirstGamepadName();
+		// String gpName = im.getFirstGamepadName();
 		String kbName = im.getKeyboardName();
 
 		player1Cam = new OrbitCameraController(camera1, player1, im, kbName);
-		//player2Cam = new OrbitCameraController(camera2, player2, im, gpName);
+		// player2Cam = new OrbitCameraController(camera2, player2, im, gpName);
 
 		// Gamepad Bindings
 		IAction mvXAxis = new MoveXAxis(player1, speed);
 		IAction mvZAxis = new MoveZAxis(player1, speed);
 
-		/* im.associateAction(gpName, net.java.games.input.Component.Identifier.Axis.X, mvXAxis,
-				IInputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
-		im.associateAction(gpName, net.java.games.input.Component.Identifier.Axis.Y, mvZAxis,
-				IInputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN); */
+		/*
+		 * im.associateAction(gpName,
+		 * net.java.games.input.Component.Identifier.Axis.X, mvXAxis,
+		 * IInputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+		 * im.associateAction(gpName,
+		 * net.java.games.input.Component.Identifier.Axis.Y, mvZAxis,
+		 * IInputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+		 */
 
 		// Keyboard Bindings
 		QuitGameAction escQuit = new QuitGameAction(this);
-		IAction mvForward = new MoveForward(player1, speed);
-		IAction mvBack = new MoveBack(player1, speed);
-		IAction mvRight = new MoveRight(player1, speed);
-		IAction mvLeft = new MoveLeft(player1, speed);
+		IAction mvForward = new MoveForward(player1, speed, hillTerrain);
+		IAction mvBack = new MoveBack(player1, speed, hillTerrain);
+		IAction mvRight = new MoveRight(player1, speed, hillTerrain);
+		IAction mvLeft = new MoveLeft(player1, speed, hillTerrain);
 
 		im.associateAction(kbName, net.java.games.input.Component.Identifier.Key.D, mvForward,
 				IInputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
@@ -311,8 +352,8 @@ public class MyGameEngine extends BaseGame {
 		renderer.setCamera(camera1);
 		super.render();
 
-		//renderer.setCamera(camera2);
-		//super.render();
+		// renderer.setCamera(camera2);
+		// super.render();
 	}
 
 	public void start() {
