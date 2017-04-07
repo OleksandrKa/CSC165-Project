@@ -1,0 +1,4 @@
+Avatar type options:
+Pyramid & Cube, game does not seem to run if both instances are running on same computer (texture renderer crashes?). Need to either set testOnSingleComputerFlag to true, to disable the textures, or run each player on a separate computer.
+
+Script does not do much, I've just moved the XYZ axes into the init.js file. Later, once project is further fleshed out, script will be changed to have more purpose (possibly replacable player models).

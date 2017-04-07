@@ -15,6 +15,7 @@ import sage.display.DisplaySystem;
 import sage.display.IDisplaySystem;
 import sage.renderer.IRenderer;
 import sage.renderer.RendererFactory;
+import csc165_lab3.*;
 
 public class MyDisplaySystem implements IDisplaySystem {
 	private JFrame myFrame;
