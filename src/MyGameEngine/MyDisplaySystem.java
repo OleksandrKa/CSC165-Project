@@ -1,4 +1,4 @@
-package csc165_lab3;
+package MyGameEngine;
 
 import java.awt.Canvas;
 import java.awt.DisplayMode;

@@ -1,4 +1,4 @@
-package csc165_lab3;
+package MyGameEngine;
 
 /* This class allows game to move the camera forward and backward 
  * in the same manner as the W and D keys.

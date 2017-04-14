@@ -1,7 +1,7 @@
-package csc165_lab3;
+package MyGameEngine;
 
-/* This class allows movement of the pitch camera around its U axis,
- * the same as the Up/Down arrow keys.
+/* This class allows movement of the YAW camera around its V axis, 
+ * the same as the Left/Right arrow keys.
  */
 
 import sage.input.action.AbstractInputAction;
@@ -10,11 +10,11 @@ import graphicslib3D.Vector3D;
 import net.java.games.input.Event;
 import sage.camera.ICamera;
 
-public class MoveRYAxis extends AbstractInputAction {
+public class MoveRXAxis extends AbstractInputAction {
 	private ICamera camera;
 	private float speed;
 
-	public MoveRYAxis(ICamera cam, float spd) {
+	public MoveRXAxis(ICamera cam, float spd) {
 		camera = cam;
 		speed = spd;
 	}
@@ -22,7 +22,7 @@ public class MoveRYAxis extends AbstractInputAction {
 	@Override
 	public void performAction(float time, Event event) {
 		Vector3D curLoc = new Vector3D(camera.getLocation());
-		Vector3D viewDir = camera.getUpAxis().normalize();
+		Vector3D viewDir = camera.getRightAxis().normalize();
 		Vector3D newLoc = curLoc.add(viewDir);
 
 		if (event.getValue() < -0.2) {

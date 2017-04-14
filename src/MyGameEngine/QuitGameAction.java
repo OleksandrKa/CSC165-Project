@@ -1,4 +1,4 @@
-package csc165_lab3;
+package MyGameEngine;
 
 import sage.input.action.AbstractInputAction;
 import sage.app.AbstractGame;

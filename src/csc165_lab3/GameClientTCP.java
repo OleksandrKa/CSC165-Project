@@ -11,12 +11,12 @@ import graphicslib3D.Vector3D;
 import sage.networking.client.GameConnectionClient;
 
 public class GameClientTCP extends GameConnectionClient{
-	private MyGameEngine game;
+	private MyGame game;
 	private UUID id;
 	private char avatarType;
 	private Vector<GhostAvatar> ghostAvatars;
 	
-	public GameClientTCP(InetAddress remAddr, int remPort, ProtocolType pType, MyGameEngine game) throws IOException{
+	public GameClientTCP(InetAddress remAddr, int remPort, ProtocolType pType, MyGame game) throws IOException{
 		super(remAddr, remPort, pType);
 		this.game = game;
 		this.id = UUID.randomUUID();

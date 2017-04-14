@@ -1,4 +1,4 @@
-package csc165_lab3;
+package MyGameEngine;
 
 import graphicslib3D.Point3D;
 import graphicslib3D.Vector3D;

@@ -1,4 +1,4 @@
-package csc165_lab3;
+package MyGameEngine;
 
 /* This class allows movement of the View camera around its V axis, 
  * the same as the Left/Right arrow keys.

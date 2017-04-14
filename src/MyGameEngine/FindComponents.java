@@ -1,4 +1,4 @@
-package csc165_lab3;
+package MyGameEngine;
 
 import net.java.games.input.Component;
 import net.java.games.input.Controller;
