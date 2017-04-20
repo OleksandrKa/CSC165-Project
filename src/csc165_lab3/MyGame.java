@@ -44,7 +44,7 @@ import csc165_lab3.*;
 import MyGameEngine.*;
 
 public class MyGame extends BaseGame{
-	boolean testOnSingleComputerFlag = false;
+	boolean testOnSingleComputerFlag = true;
 	
 	GameClientTCP thisClient;
 	
