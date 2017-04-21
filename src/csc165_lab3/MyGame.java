@@ -30,15 +30,22 @@ import sage.event.IEventManager;
 import sage.input.IInputManager;
 import sage.input.InputManager;
 import sage.input.action.IAction;
+import sage.model.loader.OBJLoader;
 //import myGameEngine.*;
 import sage.networking.IGameConnection.ProtocolType;
 import sage.renderer.IRenderer;
 import sage.scene.HUDString;
 import sage.scene.SceneNode;
 import sage.scene.SkyBox;
+import sage.scene.TriMesh;
 import sage.scene.shape.Line;
 import sage.texture.Texture;
 import sage.texture.TextureManager;
+import sage.scene.state.RenderState.RenderStateType;
+import sage.scene.state.TextureState;
+import sage.terrain.AbstractHeightMap;
+import sage.terrain.HillHeightMap;
+import sage.terrain.TerrainBlock;
 
 import csc165_lab3.*;
 import MyGameEngine.*;
@@ -78,6 +85,9 @@ public class MyGame extends BaseGame{
 	private float time = 0;
 	boolean isConnected = false;
 
+	//Terrain
+	private TerrainBlock hillTerrain;
+
 	public MyGame(String serverAddr, int sPort){
 		super();
 		this.serverAddress = serverAddr;
@@ -92,6 +102,8 @@ public class MyGame extends BaseGame{
 		initNetwork();
 		initDisplay();
 		initGameObjects();
+		initTerrain();
+		initNPC();
 		initPlayer();
 		initActions();
 	}
@@ -172,10 +184,10 @@ public class MyGame extends BaseGame{
 
 		// Keyboard Bindings
 		QuitGameAction escQuit = new QuitGameAction(this);
-		IAction mvForward = new MoveForward(player, speed);
-		IAction mvBack = new MoveBack(player, speed);
-		IAction mvRight = new MoveRight(player, speed);
-		IAction mvLeft = new MoveLeft(player, speed);
+		IAction mvForward = new MoveForward(player, speed, hillTerrain);
+		IAction mvBack = new MoveBack(player, speed, hillTerrain);
+		IAction mvRight = new MoveRight(player, speed, hillTerrain);
+		IAction mvLeft = new MoveLeft(player, speed, hillTerrain);
 
 		im.associateAction(kbName, net.java.games.input.Component.Identifier.Key.D, mvForward,
 				IInputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
@@ -261,16 +273,71 @@ public class MyGame extends BaseGame{
 		addGameWorldObject(zAxis);
 	}
 	
-	private char selectAvatar(){
+	private void initNPC() {
+		OBJLoader loader = new OBJLoader();
+
+		// Instantiate Hero NPC
+		TriMesh heroNPC = loader.loadModel("./images/hero.obj");
+		heroNPC.updateLocalBound();
+		heroNPC.translate(5, 0, 5);
+		// Apply Textures
+		TextureState heroState;
+		Texture heroTexture = TextureManager.loadTexture2D("./images/heroTexture.png");
+		heroTexture.setWrapMode(Texture.WrapMode.Repeat);
+		heroTexture.setApplyMode(sage.texture.Texture.ApplyMode.Replace);
+		heroState = (TextureState) display.getRenderer().createRenderState(RenderStateType.Texture);
+		heroState.setTexture(heroTexture, 0);
+		heroState.setEnabled(true);
+		heroNPC.setRenderState(heroState);
+
+		// Add NPCs to world
+		addGameWorldObject(heroNPC);
+	}
+
+	private void initTerrain() { // create height map and terrain block
+		HillHeightMap myHillHeightMap = new HillHeightMap(300, 2000, 5.0f, 20.0f, (byte) 2, 12345);
+		myHillHeightMap.setHeightScale(0.1f);
+		hillTerrain = createTerBlock(myHillHeightMap);
+		// create texture and texture state to color the terrain
+		TextureState grassState;
+		Texture grassTexture = TextureManager.loadTexture2D("./images/grass.jpg");
+		grassTexture.setWrapMode(Texture.WrapMode.Repeat);
+		grassTexture.setApplyMode(sage.texture.Texture.ApplyMode.Replace);
+		grassState = (TextureState) display.getRenderer().createRenderState(RenderStateType.Texture);
+		grassState.setTexture(grassTexture, 0);
+		grassState.setEnabled(true);
+		// apply the texture to the terrain
+		hillTerrain.setRenderState(grassState);
+		addGameWorldObject(hillTerrain);
+	}
+
+	private TerrainBlock createTerBlock(AbstractHeightMap heightMap) {
+		float heightScale = 0.05f;
+		Vector3D terrainScale = new Vector3D(1, heightScale, 1);
+		// use the size of the height map as the size of the terrain
+		int terrainSize = heightMap.getSize();
+		// specify terrain origin so heightmap (0,0) is at world origin
+		float cornerHeight = heightMap.getTrueHeightAtPoint(0, 0) * heightScale;
+		Point3D terrainOrigin = new Point3D(0, -cornerHeight, 0);
+		// create a terrain block using the height map
+		String name = "Terrain:" + heightMap.getClass().getSimpleName();
+		TerrainBlock tb = new TerrainBlock(name, terrainSize, terrainScale, heightMap.getHeightData(), terrainOrigin);
+		return tb;
+	}
+
+	private char selectAvatar() {
 		Scanner s = new Scanner(System.in);
 		System.out.print("What avatar would you like? (p for pyramid, d for hollow pyramid)");
 		String avatar = s.nextLine();
 		s.close();
-		if(avatar.charAt(0) == 'p')		 return 'p';
-		else if(avatar.charAt(0) == 'd') return 'd';
-		else 							 return 0;
+		if (avatar.charAt(0) == 'p')
+			return 'p';
+		else if (avatar.charAt(0) == 'd')
+			return 'd';
+		else
+			return 0;
 	}
-	
+
 	private void executeScript(ScriptEngine engine, String scriptFileName){
 		try{
 			FileReader fileReader = new FileReader(scriptFileName);
