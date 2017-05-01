@@ -46,6 +46,12 @@ import sage.scene.state.TextureState;
 import sage.terrain.AbstractHeightMap;
 import sage.terrain.HillHeightMap;
 import sage.terrain.TerrainBlock;
+//Physics
+import sage.physics.IPhysicsEngine;
+import sage.physics.IPhysicsObject;
+import sage.physics.PhysicsEngineFactory;
+//temp:
+import sage.scene.shape.Sphere;
 
 import csc165_lab3.*;
 import MyGameEngine.*;
@@ -72,18 +78,24 @@ public class MyGame extends BaseGame{
 	IEventManager eventMg;
 	IRenderer renderer;
 	ICamera camera;
+	IPhysicsEngine physicsEngine;
+	IPhysicsObject ballP, heroP, terrainP;
 	DisplaySettingsDialog displayDialog;
 	
 	//Game Objects
 	private SceneNode player;
+	private TriMesh heroNPC;
 	private OrbitCameraController playerCam;
 	private HUDString timeString;
 	private SkyBox skybox;
+	//temp:
+	private Sphere ball;
 	
 	//Game Data
 	private float speed = 0.02f;
 	private float time = 0;
 	boolean isConnected = false;
+	boolean running;
 
 	//Terrain
 	private TerrainBlock hillTerrain;
@@ -101,7 +113,9 @@ public class MyGame extends BaseGame{
 		initScript();
 		initNetwork();
 		initDisplay();
+		initPhysics();
 		initGameObjects();
+		//TODO: Should probably move initTerrain, initNPC, inside of GameObjects. Maybe initPlayer too.
 		initTerrain();
 		initNPC();
 		initPlayer();
@@ -132,7 +146,19 @@ public class MyGame extends BaseGame{
 		DecimalFormat df = new DecimalFormat("0.0");
 		timeString.setText("Time = " + df.format(time / 1000));
 		playerCam.update(elapsedTimeMS);
+		
 		if(thisClient != null) thisClient.processPackets();
+		
+		//Physics Processing.
+		Matrix3D mat;
+		physicsEngine.update(20.0f);
+		for(SceneNode s : getGameWorld()){
+			if(s.getPhysicsObject() != null){
+				mat = new Matrix3D(s.getPhysicsObject().getTransform());
+				s.getLocalTranslation().setCol(3,mat.getCol(3));
+				//TODO: should also get and apply rotation.
+			}
+		}
 		
 		// tell BaseGame to update game world state
 		super.update(elapsedTimeMS);
@@ -271,13 +297,28 @@ public class MyGame extends BaseGame{
 		addGameWorldObject(yAxis);
 		Line zAxis = (Line) jsEngine.get("zAxis");
 		addGameWorldObject(zAxis);
+		
+		//TODO: Remove demo sphere, add objects for game.
+		ball = new Sphere(1.0,16,16, Color.blue);
+		Matrix3D translateM = new Matrix3D();
+		translateM.translate(5,20,5);
+		ball.setLocalTranslation(translateM);
+		addGameWorldObject(ball);
+		
+		ball.updateGeometricState(1.0f, true);
+		
+		float mass = 1.0f;
+		ballP = physicsEngine.addSphereObject(physicsEngine.nextUID(), 
+				mass, ball.getWorldTransform().getValues(), 1.0f);
+		ballP.setBounciness(1.0f);
+		ball.setPhysicsObject(ballP);
 	}
 	
 	private void initNPC() {
 		OBJLoader loader = new OBJLoader();
 
 		// Instantiate Hero NPC
-		TriMesh heroNPC = loader.loadModel("./images/hero.obj");
+		heroNPC = loader.loadModel("./images/hero.obj");
 		heroNPC.updateLocalBound();
 		heroNPC.translate(5, 0, 5);
 		// Apply Textures
@@ -292,6 +333,16 @@ public class MyGame extends BaseGame{
 
 		// Add NPCs to world
 		addGameWorldObject(heroNPC);
+		
+		heroNPC.updateGeometricState(1.0f, true);
+		
+		//Add NPC Physics
+		float mass = 5.0f;
+		//TODO: Experimentally determine best radius and height values.
+		heroP = physicsEngine.addCapsuleObject(physicsEngine.nextUID(), 
+				mass, heroNPC.getWorldTransform().getValues(), 1.0f, 0.5f);
+		heroP.setBounciness(0.5f);
+		heroNPC.setPhysicsObject(heroP);
 	}
 
 	private void initTerrain() { // create height map and terrain block
@@ -309,8 +360,29 @@ public class MyGame extends BaseGame{
 		// apply the texture to the terrain
 		hillTerrain.setRenderState(grassState);
 		addGameWorldObject(hillTerrain);
+		
+		hillTerrain.updateGeometricState(1.0f, true);
+		
+		//Add Terrain Physics
+		float up[] = {0,1,0};
+		terrainP = physicsEngine.addStaticPlaneObject(physicsEngine.nextUID(), 
+					hillTerrain.getWorldTransform().getValues(), up, 0.0f);
+		terrainP.setBounciness(0.0f);
+		//remove this line for ODE4J.
+		hillTerrain.setPhysicsObject(terrainP);
+		
+		//TODO: should also set damping, friction, etc.
 	}
 
+	private void initPhysics() {
+		//String engine = "sage.physics.ODE4J.ODE4JPhysicsEngine";
+		String engine = "sage.physics.JBullet.JBulletPhysicsEngine";
+		physicsEngine = PhysicsEngineFactory.createPhysicsEngine(engine);
+		physicsEngine.initSystem();
+		float[] gravity = {0, -1f, 0};
+		physicsEngine.setGravity(gravity);
+	}
+	
 	private TerrainBlock createTerBlock(AbstractHeightMap heightMap) {
 		float heightScale = 0.05f;
 		Vector3D terrainScale = new Vector3D(1, heightScale, 1);
