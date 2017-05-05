@@ -351,6 +351,7 @@ public class MyGame extends BaseGame{
 		//Add NPC AI
 		//TODO: Move all npc code to separate npc class.
 		npcCtrl = new NPCcontroller(this, heroNPC, heroLoc);
+		npcCtrl.startNPControl();
 	}
 
 	private void initTerrain() { // create height map and terrain block
