@@ -99,6 +99,9 @@ public class MyGame extends BaseGame{
 
 	//Terrain
 	private TerrainBlock hillTerrain;
+	
+	//NPC
+	private NPCcontroller npcCtrl;
 
 	public MyGame(String serverAddr, int sPort){
 		super();
@@ -320,7 +323,8 @@ public class MyGame extends BaseGame{
 		// Instantiate Hero NPC
 		heroNPC = loader.loadModel("./images/hero.obj");
 		heroNPC.updateLocalBound();
-		heroNPC.translate(5, 0, 5);
+		Point3D heroLoc = new Point3D(5,0,5);
+		heroNPC.translate((float) heroLoc.getX(),(float) heroLoc.getY(),(float) heroLoc.getZ());
 		// Apply Textures
 		TextureState heroState;
 		Texture heroTexture = TextureManager.loadTexture2D("./images/heroTexture.png");
@@ -343,6 +347,10 @@ public class MyGame extends BaseGame{
 				mass, heroNPC.getWorldTransform().getValues(), 1.0f, 0.5f);
 		heroP.setBounciness(0.5f);
 		heroNPC.setPhysicsObject(heroP);
+		
+		//Add NPC AI
+		//TODO: Move all npc code to separate npc class.
+		npcCtrl = new NPCcontroller(this, heroNPC, heroLoc);
 	}
 
 	private void initTerrain() { // create height map and terrain block
@@ -493,5 +501,16 @@ public class MyGame extends BaseGame{
 	public boolean removeGameWorldObject(SceneNode s){
 		return super.removeGameWorldObject(s);
 	}
-	
+
+	public void checkAvatarNear(Point3D npcP) {
+		boolean isNear = false;
+		Point3D avLoc = new Point3D(player.getLocalTranslation().getCol(3));
+		if (Math.abs(npcP.getX() - avLoc.getX()) <= 5
+			&& Math.abs(npcP.getY() - avLoc.getY()) <= 5){
+				isNear = true;
+			}
+		
+		
+		npcCtrl.setNearFlag(isNear);
+	}
 }
