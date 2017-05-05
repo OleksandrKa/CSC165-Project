@@ -50,6 +50,7 @@ public class NPCcontroller{
 			
 			//THINK
 			if(elapsedThinkMilliSecs >= 500.0f){
+				System.out.print("Think");
 				lastThinkUpdateTime = currentTime;
 				bt.update(elapsedThinkMilliSecs);
 			}

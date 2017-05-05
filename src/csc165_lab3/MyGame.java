@@ -120,8 +120,8 @@ public class MyGame extends BaseGame{
 		initGameObjects();
 		//TODO: Should probably move initTerrain, initNPC, inside of GameObjects. Maybe initPlayer too.
 		initTerrain();
-		initNPC();
 		initPlayer();
+		initNPC();
 		initActions();
 	}
 	
@@ -505,6 +505,7 @@ public class MyGame extends BaseGame{
 
 	public void checkAvatarNear(Point3D npcP) {
 		boolean isNear = false;
+		System.out.print("nearSubCheck");
 		Point3D avLoc = new Point3D(player.getLocalTranslation().getCol(3));
 		if (Math.abs(npcP.getX() - avLoc.getX()) <= 5
 			&& Math.abs(npcP.getY() - avLoc.getY()) <= 5){

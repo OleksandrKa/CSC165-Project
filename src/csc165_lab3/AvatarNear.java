@@ -20,6 +20,7 @@ public class AvatarNear extends BTCondition{
 	}
 	
 	protected boolean check(){
+		System.out.print("nearCheck");
 		Point3D npcP = new Point3D(npcLoc.getX(),npcLoc.getY(),npcLoc.getZ());
 		game.checkAvatarNear(npcP);
 		return npcc.getNearFlag();

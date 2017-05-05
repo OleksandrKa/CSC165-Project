@@ -13,6 +13,7 @@ public class GetBig extends BTAction{
 	
 	protected BTStatus update(float elapsedTime){
 		//npc.getBig();
+		System.out.print("big");
 		npc.scale(1.1f,1.1f,1.1f);
 		return BTStatus.BH_SUCCESS;
 	}
