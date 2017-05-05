@@ -52,6 +52,9 @@ import sage.physics.IPhysicsObject;
 import sage.physics.PhysicsEngineFactory;
 //temp:
 import sage.scene.shape.Sphere;
+//Sound
+import sage.audio.*;
+import com.jogamp.openal.ALFactory;
 
 import csc165_lab3.*;
 import MyGameEngine.*;
@@ -100,6 +103,10 @@ public class MyGame extends BaseGame{
 	//Terrain
 	private TerrainBlock hillTerrain;
 
+	//Sound
+	IAudioManager audioMgr;
+ 	Sound bgSound, npcSound; 
+
 	public MyGame(String serverAddr, int sPort){
 		super();
 		this.serverAddress = serverAddr;
@@ -120,6 +127,7 @@ public class MyGame extends BaseGame{
 		initNPC();
 		initPlayer();
 		initActions();
+		initAudio();
 	}
 	
 	protected void initSystem(){
@@ -159,7 +167,10 @@ public class MyGame extends BaseGame{
 				//TODO: should also get and apply rotation.
 			}
 		}
-		
+
+		npcSound.setLocation(new Point3D(heroNPC.getWorldTranslation().getCol(3)));
+		setEarParameters();
+
 		// tell BaseGame to update game world state
 		super.update(elapsedTimeMS);
 
@@ -214,6 +225,7 @@ public class MyGame extends BaseGame{
 		IAction mvBack = new MoveBack(player, speed, hillTerrain);
 		IAction mvRight = new MoveRight(player, speed, hillTerrain);
 		IAction mvLeft = new MoveLeft(player, speed, hillTerrain);
+		IAction yaw = new MoveYaw(playerCam);
 
 		im.associateAction(kbName, net.java.games.input.Component.Identifier.Key.D, mvForward,
 				IInputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
@@ -224,6 +236,10 @@ public class MyGame extends BaseGame{
 		im.associateAction(kbName, net.java.games.input.Component.Identifier.Key.W, mvLeft,
 				IInputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
 		im.associateAction(kbName, net.java.games.input.Component.Identifier.Key.ESCAPE, escQuit,
+				IInputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+		im.associateAction(kbName, net.java.games.input.Component.Identifier.Key.LEFT, yaw,
+				IInputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+		im.associateAction(kbName, net.java.games.input.Component.Identifier.Key.RIGHT, yaw,
 				IInputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
 
 		// List out controllers
@@ -383,6 +399,42 @@ public class MyGame extends BaseGame{
 		physicsEngine.setGravity(gravity);
 	}
 	
+	private void initAudio() {
+		AudioResource resource1, resource2;
+		audioMgr = AudioManagerFactory.createAudioManager("sage.audio.joal.JOALAudioManager");
+		if (!audioMgr.initialize()) {
+			System.out.println("Audio Manager failed to initialize!");
+			return;
+		}
+		resource1 = audioMgr.createAudioResource("./sounds/hero_hello.wav", AudioResourceType.AUDIO_SAMPLE);
+		resource2 = audioMgr.createAudioResource("./sounds/FamiliarRoads.wav", AudioResourceType.AUDIO_STREAM);
+		npcSound = new Sound(resource1, SoundType.SOUND_EFFECT, 100, true);
+		bgSound = new Sound(resource2, SoundType.SOUND_EFFECT, 60, true);
+		npcSound.initialize(audioMgr);
+		bgSound.initialize(audioMgr);
+		npcSound.setMaxDistance(4.0f);
+		npcSound.setMinDistance(1.0f);
+		npcSound.setRollOff(5.0f);
+		bgSound.setLocation(new Point3D(0,0,0));
+		bgSound.setMaxDistance(50.0f);
+		bgSound.setMinDistance(3.0f);
+		bgSound.setRollOff(5.0f);
+		npcSound.setLocation(new Point3D(5,0,5));
+		setEarParameters();
+		npcSound.play();
+		bgSound.play(100,true);
+	}
+
+	public void setEarParameters() {
+		Matrix3D avDir = (Matrix3D) (player.getWorldRotation().clone());
+		float camAz = playerCam.getAzimuth();
+		avDir.rotateY(180.0f - camAz);
+		Vector3D camDir = new Vector3D(0, 0, 1);
+		camDir = camDir.mult(avDir);
+		audioMgr.getEar().setLocation(camera.getLocation());
+		audioMgr.getEar().setOrientation(camDir, new Vector3D(0, 1, 0));
+	}
+
 	private TerrainBlock createTerBlock(AbstractHeightMap heightMap) {
 		float heightScale = 0.05f;
 		Vector3D terrainScale = new Vector3D(1, heightScale, 1);
