@@ -511,8 +511,8 @@ public class MyGame extends BaseGame{
 		boolean isNear = false;
 		System.out.print("nearSubCheck");
 		Point3D avLoc = new Point3D(player.getLocalTranslation().getCol(3));
-		if (Math.abs(npcP.getX() - avLoc.getX()) <= 5
-			&& Math.abs(npcP.getY() - avLoc.getY()) <= 5){
+		if (Math.abs(npcP.getX() - avLoc.getX()) <= 2
+			&& Math.abs(npcP.getY() - avLoc.getY()) <= 2){
 				isNear = true;
 			}
 		
