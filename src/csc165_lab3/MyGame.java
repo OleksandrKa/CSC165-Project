@@ -122,6 +122,7 @@ public class MyGame extends BaseGame{
 		initTerrain();
 		initPlayer();
 		initNPC();
+		System.out.print("EXITED");
 		initActions();
 	}
 	
@@ -162,6 +163,9 @@ public class MyGame extends BaseGame{
 				//TODO: should also get and apply rotation.
 			}
 		}
+		
+		//AI Processing.
+		npcCtrl.npcLoop();
 		
 		// tell BaseGame to update game world state
 		super.update(elapsedTimeMS);

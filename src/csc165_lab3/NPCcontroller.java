@@ -36,13 +36,13 @@ public class NPCcontroller{
 	}
 	
 	public void npcLoop(){
-		while(true){
+		//while(true){
 			currentTime = System.nanoTime();
 			float elapsedThinkMilliSecs = (currentTime-lastThinkUpdateTime)/(1000000.0f);
 			float elapsedTickMilliSecs = (currentTime-lastTickUpdateTime)/(1000000.0f);
 			
 			//TICK
-			if(elapsedTickMilliSecs >= 500.0f){
+			if(elapsedTickMilliSecs >= 50.0f){
 				lastTickUpdateTime = currentTime;
 				//npc.updateLocation();
 				//server.sendNPCinfo();
@@ -56,7 +56,7 @@ public class NPCcontroller{
 			}
 			
 			Thread.yield();
-		}
+		//}
 	}
 	//If Avatar is nearby, walk toward it. Otherwise, walk in a random direction.
 	//For now, just gets big and small when avatar is nearby.
