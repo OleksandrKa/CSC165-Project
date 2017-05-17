@@ -1,8 +1,4 @@
-package MyGameEngine;
-
-/* This class allows movement of the YAW camera around its V axis, 
- * the same as the Left/Right arrow keys.
- */
+package myGameEngine;
 
 import sage.input.action.AbstractInputAction;
 import graphicslib3D.Point3D;

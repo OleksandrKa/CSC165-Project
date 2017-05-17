@@ -3,24 +3,22 @@ package csc165_lab3;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.util.UUID;
-import java.util.Vector;
 
-import sage.networking.server.GameConnectionServer;
-import sage.networking.server.IClientInfo;
 import graphicslib3D.Vector3D;
+import myGameEngine.Entity;
 import sage.networking.client.GameConnectionClient;
 
 public class GameClientTCP extends GameConnectionClient{
 	private MyGame game;
 	private UUID id;
 	private char avatarType;
-	private Vector<GhostAvatar> ghostAvatars;
+	//private Vector<Entity> entities;
+	public Entity entity; //max of 2 players.
 	
 	public GameClientTCP(InetAddress remAddr, int remPort, ProtocolType pType, MyGame game) throws IOException{
 		super(remAddr, remPort, pType);
 		this.game = game;
 		this.id = UUID.randomUUID();
-		this.ghostAvatars = new Vector<GhostAvatar>();
 	}
 	
 	protected void processPacket(Object msg){
@@ -126,23 +124,19 @@ public class GameClientTCP extends GameConnectionClient{
 	}
 	
 	private void createGhostAvatar(UUID remID, Vector3D pos, char remoteAvatar){
-		GhostAvatar avatar = new GhostAvatar(remID, pos, remoteAvatar);
-		ghostAvatars.add(avatar);
-		game.addGameWorldObject(avatar);
+		Entity avatar = new Entity(remID, pos, remoteAvatar, game.display);
+		entity = avatar;
+		game.addGameWorldObject(avatar.model);
 	}
 	private void removeGhostAvatar(UUID remID){
-		for(GhostAvatar g : ghostAvatars){
-			if(g.id == remID){
-				game.removeGameWorldObject(g);
-				ghostAvatars.remove(g);
-			}
+		if(entity.id == remID){
+			game.removeGameWorldObject(entity.model);
+			entity = null;
 		}
 	}
 	private void moveGhostAvatar(UUID remID, Vector3D ghostPos){
-		for(GhostAvatar g : ghostAvatars){
-			if(g.id == remID){
-				g.pos = ghostPos;
-			}
+		if(entity.id == remID){
+			entity.updatePosition(ghostPos);
 		}
 	}
 }

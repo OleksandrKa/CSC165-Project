@@ -8,12 +8,12 @@ import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.Scanner;
 
-import csc165_lab3.*;
-import MyGameEngine.*;
+import myGameEngine.GameServerTCP;
 
 
 public class Starter{
 	public static void main(String[] args){
+		@SuppressWarnings("resource")
 		Scanner s = new Scanner(System.in);
 		System.out.print("Host or Join game? (h/j): ");
 		String input = s.nextLine();
@@ -26,6 +26,7 @@ public class Starter{
 	}
 	
 	public static void hostServer(){
+		@SuppressWarnings("resource")
 		Scanner s = new Scanner(System.in);
 		System.out.print("Enter hosting port: ");
 		int port = s.nextInt();
@@ -63,6 +64,7 @@ public class Starter{
 	}
 	
 	public static void joinServer(){
+		@SuppressWarnings("resource")
 		Scanner s = new Scanner(System.in);
 		System.out.print("Enter server IP address: ");
 		String ip = s.nextLine();

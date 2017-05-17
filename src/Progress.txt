@@ -1,0 +1,20 @@
+WTF 2 do:
+
+DONE:	Make it so that gameclient translates the avatar, not just changes the vector
+		on that note, remove the vector, it's not used anywhere else.
+		
+DONE:	sendMoveMessage is not used anywhere, add it to update.
+
+DONE: Replace NPC with ball mine.
+
+Make AI react to ghost avatar as well
+
+Replace custom OrbitCameraController with built in camera controller.
+
+DONE: Create model/(optional animation) in blendr and add it to game.
+
+DONE: Add entity class to store model in it.
+
+Go over Movement classes and make sure they actually go in the correct direction.
+
+Make sure to add an event and event listener to the game.

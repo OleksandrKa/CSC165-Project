@@ -1,9 +1,7 @@
 package csc165_lab3;
 
-import MyGameEngine.GameServerTCP;
 import graphicslib3D.Point3D;
 import sage.ai.behaviortrees.BTCondition;
-import sage.scene.TriMesh;
 
 public class AvatarNear extends BTCondition{
 	//GameClientTCP server;
@@ -20,7 +18,6 @@ public class AvatarNear extends BTCondition{
 	}
 	
 	protected boolean check(){
-		System.out.print("nearCheck");
 		Point3D npcP = new Point3D(npcLoc.getX(),npcLoc.getY(),npcLoc.getZ());
 		game.checkAvatarNear(npcP);
 		return npcc.getNearFlag();

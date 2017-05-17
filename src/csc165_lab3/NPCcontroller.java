@@ -4,22 +4,22 @@ import graphicslib3D.Point3D;
 import sage.ai.behaviortrees.BTCompositeType;
 import sage.ai.behaviortrees.BTSequence;
 import sage.ai.behaviortrees.BehaviorTree;
-import sage.scene.TriMesh;
+import sage.scene.SceneNode;
 
 public class NPCcontroller{
 	BehaviorTree bt = new BehaviorTree(BTCompositeType.SELECTOR);
 	long currentTime, lastUpdateTime;
 	long lastThinkUpdateTime, lastTickUpdateTime;
 	//NPC npc;
-	TriMesh npc;
+	SceneNode npc;
 	Point3D npcLoc;
 	//GameClientTCP server;
 	MyGame game;
 	boolean nearFlag = false;
 
-	public NPCcontroller(MyGame myGame, TriMesh heroNPC, Point3D heroLoc) {
+	public NPCcontroller(MyGame myGame, SceneNode mine, Point3D heroLoc) {
 		game = myGame;
-		npc = heroNPC;
+		npc = mine;
 		npcLoc = heroLoc;
 	}
 
@@ -50,7 +50,6 @@ public class NPCcontroller{
 			
 			//THINK
 			if(elapsedThinkMilliSecs >= 500.0f){
-				System.out.print("Think");
 				lastThinkUpdateTime = currentTime;
 				bt.update(elapsedThinkMilliSecs);
 			}
