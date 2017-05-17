@@ -20,9 +20,10 @@ Make sure to add an event and event listener to the game.
 
 Move players + NPCs to middle of terrain instead of edge.
 
-Make many NPCs, not just one.
+Done: Make many NPCs, not just one.
 
-Resize physics object when resizing npc.
+Done: Resize physics object when resizing npc. 
+		Problem: can't do this, so remove physics from npcs.
 
 
 
