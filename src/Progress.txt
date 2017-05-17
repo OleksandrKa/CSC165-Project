@@ -1,3 +1,4 @@
+
 Things to do:
 DONE:	Make it so that gameclient translates the avatar, not just changes the vector
 		on that note, remove the vector, it's not used anywhere else.

@@ -1,8 +1,4 @@
-package MyGameEngine;
-
-/* This class allows movement of the pitch camera around its U axis,
- * the same as the Up/Down arrow keys.
- */
+package myGameEngine;
 
 import sage.input.action.AbstractInputAction;
 import graphicslib3D.Point3D;

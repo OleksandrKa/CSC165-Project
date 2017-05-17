@@ -1,4 +1,4 @@
-package MyGameEngine;
+package myGameEngine;
 
 import graphicslib3D.Point3D;
 import graphicslib3D.Vector3D;

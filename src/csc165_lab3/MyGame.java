@@ -20,6 +20,16 @@ import javax.script.ScriptException;
 import graphicslib3D.Matrix3D;
 import graphicslib3D.Point3D;
 import graphicslib3D.Vector3D;
+import myGameEngine.Entity;
+import myGameEngine.MoveBack;
+import myGameEngine.MoveForward;
+import myGameEngine.MoveLeft;
+import myGameEngine.MoveRight;
+import myGameEngine.MoveXAxis;
+import myGameEngine.MoveZAxis;
+import myGameEngine.MyDisplaySystem;
+import myGameEngine.OrbitCameraController;
+import myGameEngine.QuitGameAction;
 import sage.app.BaseGame;
 import sage.camera.ICamera;
 import sage.camera.JOGLCamera;
@@ -30,31 +40,26 @@ import sage.event.IEventManager;
 import sage.input.IInputManager;
 import sage.input.InputManager;
 import sage.input.action.IAction;
-import sage.model.loader.OBJLoader;
 //import myGameEngine.*;
 import sage.networking.IGameConnection.ProtocolType;
+//Physics
+import sage.physics.IPhysicsEngine;
+import sage.physics.IPhysicsObject;
+import sage.physics.PhysicsEngineFactory;
 import sage.renderer.IRenderer;
 import sage.scene.HUDString;
 import sage.scene.SceneNode;
 import sage.scene.SkyBox;
-import sage.scene.TriMesh;
 import sage.scene.shape.Line;
-import sage.texture.Texture;
-import sage.texture.TextureManager;
+//temp:
+import sage.scene.shape.Sphere;
 import sage.scene.state.RenderState.RenderStateType;
 import sage.scene.state.TextureState;
 import sage.terrain.AbstractHeightMap;
 import sage.terrain.HillHeightMap;
 import sage.terrain.TerrainBlock;
-//Physics
-import sage.physics.IPhysicsEngine;
-import sage.physics.IPhysicsObject;
-import sage.physics.PhysicsEngineFactory;
-//temp:
-import sage.scene.shape.Sphere;
-
-import csc165_lab3.*;
-import MyGameEngine.*;
+import sage.texture.Texture;
+import sage.texture.TextureManager;
 
 public class MyGame extends BaseGame{
 	boolean testOnSingleComputerFlag = true;
@@ -79,12 +84,12 @@ public class MyGame extends BaseGame{
 	IRenderer renderer;
 	ICamera camera;
 	IPhysicsEngine physicsEngine;
-	IPhysicsObject ballP, heroP, terrainP;
+	IPhysicsObject ballP, mineP, terrainP;
 	DisplaySettingsDialog displayDialog;
 	
 	//Game Objects
-	private SceneNode player;
-	private TriMesh heroNPC;
+	private Entity player;
+	private Sphere mine;
 	private OrbitCameraController playerCam;
 	private HUDString timeString;
 	private SkyBox skybox;
@@ -99,6 +104,9 @@ public class MyGame extends BaseGame{
 
 	//Terrain
 	private TerrainBlock hillTerrain;
+	
+	//NPC
+	private NPCcontroller npcCtrl;
 
 	public MyGame(String serverAddr, int sPort){
 		super();
@@ -117,8 +125,8 @@ public class MyGame extends BaseGame{
 		initGameObjects();
 		//TODO: Should probably move initTerrain, initNPC, inside of GameObjects. Maybe initPlayer too.
 		initTerrain();
-		initNPC();
 		initPlayer();
+		initNPC();
 		initActions();
 	}
 	
@@ -147,7 +155,11 @@ public class MyGame extends BaseGame{
 		timeString.setText("Time = " + df.format(time / 1000));
 		playerCam.update(elapsedTimeMS);
 		
-		if(thisClient != null) thisClient.processPackets();
+		if(thisClient != null){
+			thisClient.processPackets();
+			thisClient.sendMoveMessage(player.model.getLocalTranslation().getCol(3));
+		}
+		
 		
 		//Physics Processing.
 		Matrix3D mat;
@@ -159,6 +171,9 @@ public class MyGame extends BaseGame{
 				//TODO: should also get and apply rotation.
 			}
 		}
+		
+		//AI Processing.
+		npcCtrl.npcLoop();
 		
 		// tell BaseGame to update game world state
 		super.update(elapsedTimeMS);
@@ -196,12 +211,12 @@ public class MyGame extends BaseGame{
 		//String gpName = im.getFirstGamepadName();
 		String kbName = im.getKeyboardName();
 
-		playerCam = new OrbitCameraController(camera, player, im, kbName);
+		playerCam = new OrbitCameraController(camera, player.model, im, kbName);
 		
 
 		// Gamepad Bindings
-		IAction mvXAxis = new MoveXAxis(player, speed);
-		IAction mvZAxis = new MoveZAxis(player, speed);
+		IAction mvXAxis = new MoveXAxis(player.model, speed);
+		IAction mvZAxis = new MoveZAxis(player.model, speed);
 
 		/* im.associateAction(gpName, net.java.games.input.Component.Identifier.Axis.X, mvXAxis,
 				IInputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
@@ -210,10 +225,10 @@ public class MyGame extends BaseGame{
 
 		// Keyboard Bindings
 		QuitGameAction escQuit = new QuitGameAction(this);
-		IAction mvForward = new MoveForward(player, speed, hillTerrain);
-		IAction mvBack = new MoveBack(player, speed, hillTerrain);
-		IAction mvRight = new MoveRight(player, speed, hillTerrain);
-		IAction mvLeft = new MoveLeft(player, speed, hillTerrain);
+		IAction mvForward = new MoveForward(player.model, speed, hillTerrain);
+		IAction mvBack = new MoveBack(player.model, speed, hillTerrain);
+		IAction mvRight = new MoveRight(player.model, speed, hillTerrain);
+		IAction mvLeft = new MoveLeft(player.model, speed, hillTerrain);
 
 		im.associateAction(kbName, net.java.games.input.Component.Identifier.Key.D, mvForward,
 				IInputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
@@ -233,11 +248,16 @@ public class MyGame extends BaseGame{
 
 	private void initPlayer(){
 		//TODO: Replace with a local avatar class, add a variable containing the local avatar class to ghostavatar.
-		player = new GhostAvatar(UUID.fromString("00000000-0000-0000-0000-000000000000")
-								, new Vector3D(0,0,0), playerAvatar);
-		player.translate(0,0,0);
-		player.rotate(180, new Vector3D(0, 1, 0));
-		addGameWorldObject(player);
+		player = new Entity(UUID.fromString("00000000-0000-0000-0000-000000000000")
+								, new Vector3D(0,0,0), playerAvatar, display);
+		//player.model.translate(0,0,0);
+		if(playerAvatar == 'h'){
+			player.model.rotate(90, new Vector3D(0, 1, 0));
+		}
+		if(playerAvatar == 'r'){
+			player.model.rotate(180, new Vector3D(0, 1, 0));
+		}
+		addGameWorldObject(player.model);
 		
 		camera = new JOGLCamera(renderer);
 		//camera.setPerspectiveFrustum(60, 2, 1, 1000);
@@ -315,12 +335,14 @@ public class MyGame extends BaseGame{
 	}
 	
 	private void initNPC() {
-		OBJLoader loader = new OBJLoader();
+		/*OBJLoader loader = new OBJLoader();
 
 		// Instantiate Hero NPC
+		
 		heroNPC = loader.loadModel("./images/hero.obj");
 		heroNPC.updateLocalBound();
-		heroNPC.translate(5, 0, 5);
+		Point3D heroLoc = new Point3D(5,0,5);
+		heroNPC.translate((float) heroLoc.getX(),(float) heroLoc.getY(),(float) heroLoc.getZ());
 		// Apply Textures
 		TextureState heroState;
 		Texture heroTexture = TextureManager.loadTexture2D("./images/heroTexture.png");
@@ -329,20 +351,30 @@ public class MyGame extends BaseGame{
 		heroState = (TextureState) display.getRenderer().createRenderState(RenderStateType.Texture);
 		heroState.setTexture(heroTexture, 0);
 		heroState.setEnabled(true);
-		heroNPC.setRenderState(heroState);
+		heroNPC.setRenderState(heroState);*/
+		
+		mine = new Sphere(1.0,16,16, Color.red);
+		Point3D mineLoc = new Point3D(5,0,5);
+		mine.translate((float) mineLoc.getX(), (float) mineLoc.getY(), (float) mineLoc.getZ());
+		
 
 		// Add NPCs to world
-		addGameWorldObject(heroNPC);
+		addGameWorldObject(mine);
 		
-		heroNPC.updateGeometricState(1.0f, true);
+		mine.updateGeometricState(1.0f, true);
 		
 		//Add NPC Physics
 		float mass = 5.0f;
 		//TODO: Experimentally determine best radius and height values.
-		heroP = physicsEngine.addCapsuleObject(physicsEngine.nextUID(), 
-				mass, heroNPC.getWorldTransform().getValues(), 1.0f, 0.5f);
-		heroP.setBounciness(0.5f);
-		heroNPC.setPhysicsObject(heroP);
+		mineP = physicsEngine.addSphereObject(physicsEngine.nextUID(), 
+				mass, mine.getWorldTransform().getValues(), 1.0f);
+		mineP.setBounciness(0.5f);
+		mine.setPhysicsObject(mineP);
+		
+		//Add NPC AI
+		//TODO: Move all npc code to separate npc class.
+		npcCtrl = new NPCcontroller(this, mine, mineLoc);
+		npcCtrl.startNPControl();
 	}
 
 	private void initTerrain() { // create height map and terrain block
@@ -399,13 +431,13 @@ public class MyGame extends BaseGame{
 
 	private char selectAvatar() {
 		Scanner s = new Scanner(System.in);
-		System.out.print("What avatar would you like? (p for pyramid, d for hollow pyramid)");
+		System.out.print("What avatar would you like? (h for hero, r for robot)");
 		String avatar = s.nextLine();
 		s.close();
-		if (avatar.charAt(0) == 'p')
-			return 'p';
-		else if (avatar.charAt(0) == 'd')
-			return 'd';
+		if (avatar.charAt(0) == 'h')
+			return 'h';
+		else if (avatar.charAt(0) == 'r')
+			return 'r';
 		else
 			return 0;
 	}
@@ -493,5 +525,22 @@ public class MyGame extends BaseGame{
 	public boolean removeGameWorldObject(SceneNode s){
 		return super.removeGameWorldObject(s);
 	}
-	
+
+	public void checkAvatarNear(Point3D npcP) {
+		boolean isNear = false;
+		Vector3D avLoc = player.model.getLocalTranslation().getCol(3);
+		Vector3D ghostLoc = thisClient.entity.model.getLocalTranslation().getCol(3);
+		
+		if (Math.abs(npcP.getX() - avLoc.getX()) <= 2
+			&& Math.abs(npcP.getY() - avLoc.getY()) <= 2
+			||
+			Math.abs(npcP.getX() - ghostLoc.getX()) <= 2
+			&& Math.abs(npcP.getY() - ghostLoc.getY()) <= 2)
+		{
+				isNear = true;
+		}
+		
+		
+		npcCtrl.setNearFlag(isNear);
+	}
 }

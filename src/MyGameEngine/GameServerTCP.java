@@ -1,4 +1,4 @@
-package MyGameEngine;
+package myGameEngine;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -6,7 +6,6 @@ import java.util.UUID;
 
 import sage.networking.server.GameConnectionServer;
 import sage.networking.server.IClientInfo;
-import csc165_lab3.*;
 
 public class GameServerTCP extends GameConnectionServer<UUID>{
 	

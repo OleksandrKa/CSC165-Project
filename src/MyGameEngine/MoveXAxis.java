@@ -1,16 +1,11 @@
-package MyGameEngine;
+package myGameEngine;
 
-/* This class allows movement of the View camera around its V axis, 
- * the same as the Left/Right arrow keys.
- */
+import graphicslib3D.Matrix3D;
+import graphicslib3D.Vector3D;
+import net.java.games.input.Event;
 
 import sage.input.action.AbstractInputAction;
 import sage.scene.SceneNode;
-import graphicslib3D.Matrix3D;
-import graphicslib3D.Point3D;
-import graphicslib3D.Vector3D;
-import net.java.games.input.Event;
-import sage.camera.ICamera;
 
 public class MoveXAxis extends AbstractInputAction {
 	private float speed;
