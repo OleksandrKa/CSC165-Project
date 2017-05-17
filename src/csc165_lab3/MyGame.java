@@ -28,6 +28,7 @@ import myGameEngine.MoveRight;
 import myGameEngine.MoveXAxis;
 import myGameEngine.MoveZAxis;
 import myGameEngine.MyDisplaySystem;
+import myGameEngine.OrbitCameraController;
 import myGameEngine.QuitGameAction;
 import sage.app.BaseGame;
 import sage.camera.ICamera;
@@ -39,6 +40,7 @@ import sage.event.EventManager;
 import sage.event.IEventManager;
 import sage.input.IInputManager;
 import sage.input.InputManager;
+import sage.input.ThirdPersonCameraController;
 import sage.input.action.IAction;
 //import myGameEngine.*;
 import sage.networking.IGameConnection.ProtocolType;
@@ -90,7 +92,7 @@ public class MyGame extends BaseGame{
 	//Game Objects
 	private Entity player;
 	private Sphere mine;
-	private ThirdPersonOrbitCameraController playerCam;
+	private OrbitCameraController playerCam;
 	private HUDString timeString;
 	private SkyBox skybox;
 	//temp:
@@ -211,7 +213,7 @@ public class MyGame extends BaseGame{
 		//String gpName = im.getFirstGamepadName();
 		String kbName = im.getKeyboardName();
 
-		playerCam = new ThirdPersonOrbitCameraController(camera, player.model, im, kbName);
+		playerCam = new OrbitCameraController(camera, player.model, im, kbName);
 		
 
 		// Gamepad Bindings
@@ -529,15 +531,21 @@ public class MyGame extends BaseGame{
 	public void checkAvatarNear(Point3D npcP) {
 		boolean isNear = false;
 		Vector3D avLoc = player.model.getLocalTranslation().getCol(3);
-		Vector3D ghostLoc = thisClient.entity.model.getLocalTranslation().getCol(3);
+		
 		
 		if (Math.abs(npcP.getX() - avLoc.getX()) <= 2
-			&& Math.abs(npcP.getY() - avLoc.getY()) <= 2
-			||
-			Math.abs(npcP.getX() - ghostLoc.getX()) <= 2
-			&& Math.abs(npcP.getY() - ghostLoc.getY()) <= 2)
+			&& Math.abs(npcP.getY() - avLoc.getY()) <= 2)
 		{
+			isNear = true;
+		}
+		
+		if(thisClient != null && thisClient.entity != null){
+			Vector3D ghostLoc = thisClient.entity.model.getLocalTranslation().getCol(3);
+			if (Math.abs(npcP.getX() - ghostLoc.getX()) <= 2
+					&& Math.abs(npcP.getY() - ghostLoc.getY()) <= 2)
+			{
 				isNear = true;
+			}
 		}
 		
 		
