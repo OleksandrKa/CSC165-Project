@@ -28,11 +28,11 @@ import myGameEngine.MoveRight;
 import myGameEngine.MoveXAxis;
 import myGameEngine.MoveZAxis;
 import myGameEngine.MyDisplaySystem;
-import myGameEngine.OrbitCameraController;
 import myGameEngine.QuitGameAction;
 import sage.app.BaseGame;
 import sage.camera.ICamera;
 import sage.camera.JOGLCamera;
+import sage.camera.controllers.ThirdPersonOrbitCameraController;
 import sage.display.DisplaySettingsDialog;
 import sage.display.IDisplaySystem;
 import sage.event.EventManager;
@@ -90,7 +90,7 @@ public class MyGame extends BaseGame{
 	//Game Objects
 	private Entity player;
 	private Sphere mine;
-	private OrbitCameraController playerCam;
+	private ThirdPersonOrbitCameraController playerCam;
 	private HUDString timeString;
 	private SkyBox skybox;
 	//temp:
@@ -211,7 +211,7 @@ public class MyGame extends BaseGame{
 		//String gpName = im.getFirstGamepadName();
 		String kbName = im.getKeyboardName();
 
-		playerCam = new OrbitCameraController(camera, player.model, im, kbName);
+		playerCam = new ThirdPersonOrbitCameraController(camera, player.model, im, kbName);
 		
 
 		// Gamepad Bindings
