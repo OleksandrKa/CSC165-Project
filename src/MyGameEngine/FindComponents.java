@@ -1,4 +1,4 @@
-package MyGameEngine;
+package myGameEngine;
 
 import net.java.games.input.Component;
 import net.java.games.input.Controller;

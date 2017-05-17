@@ -1,4 +1,4 @@
-package MyGameEngine;
+package myGameEngine;
 
 import sage.input.action.AbstractInputAction;
 import sage.app.AbstractGame;
