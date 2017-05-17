@@ -22,6 +22,8 @@ Move players + NPCs to middle of terrain instead of edge.
 
 Make many NPCs, not just one.
 
+Resize physics object when resizing npc.
+
 
 
 Optional: Update script to make mine locations customizable.

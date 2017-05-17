@@ -33,14 +33,12 @@ import myGameEngine.QuitGameAction;
 import sage.app.BaseGame;
 import sage.camera.ICamera;
 import sage.camera.JOGLCamera;
-import sage.camera.controllers.ThirdPersonOrbitCameraController;
 import sage.display.DisplaySettingsDialog;
 import sage.display.IDisplaySystem;
 import sage.event.EventManager;
 import sage.event.IEventManager;
 import sage.input.IInputManager;
 import sage.input.InputManager;
-import sage.input.ThirdPersonCameraController;
 import sage.input.action.IAction;
 //import myGameEngine.*;
 import sage.networking.IGameConnection.ProtocolType;
@@ -49,6 +47,7 @@ import sage.physics.IPhysicsEngine;
 import sage.physics.IPhysicsObject;
 import sage.physics.PhysicsEngineFactory;
 import sage.renderer.IRenderer;
+import sage.scene.Group;
 import sage.scene.HUDString;
 import sage.scene.SceneNode;
 import sage.scene.SkyBox;
@@ -91,7 +90,12 @@ public class MyGame extends BaseGame{
 	
 	//Game Objects
 	private Entity player;
-	private Sphere mine;
+	
+	Group mines;
+	private Sphere[] mine;
+	private int mineCount;
+	private Point3D[] mineLoc;
+	
 	private OrbitCameraController playerCam;
 	private HUDString timeString;
 	private SkyBox skybox;
@@ -108,7 +112,7 @@ public class MyGame extends BaseGame{
 	private TerrainBlock hillTerrain;
 	
 	//NPC
-	private NPCcontroller npcCtrl;
+	private NPCcontroller[] npcCtrl;
 
 	public MyGame(String serverAddr, int sPort){
 		super();
@@ -175,7 +179,8 @@ public class MyGame extends BaseGame{
 		}
 		
 		//AI Processing.
-		npcCtrl.npcLoop();
+		for(int i = 0; i < mineCount; i++)
+			npcCtrl[i].npcLoop();
 		
 		// tell BaseGame to update game world state
 		super.update(elapsedTimeMS);
@@ -355,14 +360,30 @@ public class MyGame extends BaseGame{
 		heroState.setEnabled(true);
 		heroNPC.setRenderState(heroState);*/
 		
-		mine = new Sphere(1.0,16,16, Color.red);
-		Point3D mineLoc = new Point3D(5,0,5);
-		mine.translate((float) mineLoc.getX(), (float) mineLoc.getY(), (float) mineLoc.getZ());
+		mineCount = 2;
+		mine = new Sphere[mineCount];
+		mineLoc = new Point3D[mineCount];
+		npcCtrl = new NPCcontroller[mineCount];
+		
+		mineLoc[0] = new Point3D(5,0,5);
+		mineLoc[1] = new Point3D(5,0,8);
+		
+		mines = new Group("root");
+		
+		for(int i=0; i<mineCount; i++){
+			mine[i] = new Sphere(1.0,16,16, Color.red); 
+			mine[i].translate((float) mineLoc[i].getX(), (float) mineLoc[i].getY(), (float) mineLoc[i].getZ());
+			npcCtrl[i] = new NPCcontroller(this, mine[i]);
+			npcCtrl[i].startNPControl();
+			
+			mines.addChild(mine[i]);
+		}
 		
 
 		// Add NPCs to world
-		addGameWorldObject(mine);
-		
+		addGameWorldObject(mines);
+		//Can't scale a physicsObject so mines won't have phyiscs.
+		/*
 		mine.updateGeometricState(1.0f, true);
 		
 		//Add NPC Physics
@@ -372,11 +393,9 @@ public class MyGame extends BaseGame{
 				mass, mine.getWorldTransform().getValues(), 1.0f);
 		mineP.setBounciness(0.5f);
 		mine.setPhysicsObject(mineP);
-		
+		*/
 		//Add NPC AI
 		//TODO: Move all npc code to separate npc class.
-		npcCtrl = new NPCcontroller(this, mine, mineLoc);
-		npcCtrl.startNPControl();
 	}
 
 	private void initTerrain() { // create height map and terrain block
@@ -518,7 +537,7 @@ public class MyGame extends BaseGame{
 	}
 	
 	public Vector3D getPlayerPosition(){
-		return new Vector3D(camera.getLocation().getX(),camera.getLocation().getY(),camera.getLocation().getZ());
+		return player.model.getLocalTranslation().getCol(3);
 	}
 	
 	public void addGameWorldObject(SceneNode s){
@@ -528,7 +547,7 @@ public class MyGame extends BaseGame{
 		return super.removeGameWorldObject(s);
 	}
 
-	public void checkAvatarNear(Point3D npcP) {
+	public void checkAvatarNear(NPCcontroller npcc, Vector3D npcP) {
 		boolean isNear = false;
 		Vector3D avLoc = player.model.getLocalTranslation().getCol(3);
 		
@@ -549,6 +568,6 @@ public class MyGame extends BaseGame{
 		}
 		
 		
-		npcCtrl.setNearFlag(isNear);
+		npcc.setNearFlag(isNear);
 	}
 }

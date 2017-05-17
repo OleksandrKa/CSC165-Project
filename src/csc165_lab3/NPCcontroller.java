@@ -1,6 +1,5 @@
 package csc165_lab3;
 
-import graphicslib3D.Point3D;
 import sage.ai.behaviortrees.BTCompositeType;
 import sage.ai.behaviortrees.BTSequence;
 import sage.ai.behaviortrees.BehaviorTree;
@@ -12,15 +11,13 @@ public class NPCcontroller{
 	long lastThinkUpdateTime, lastTickUpdateTime;
 	//NPC npc;
 	SceneNode npc;
-	Point3D npcLoc;
 	//GameClientTCP server;
 	MyGame game;
 	boolean nearFlag = false;
 
-	public NPCcontroller(MyGame myGame, SceneNode mine, Point3D heroLoc) {
+	public NPCcontroller(MyGame myGame, SceneNode mine) {
 		game = myGame;
 		npc = mine;
-		npcLoc = heroLoc;
 	}
 
 	public void startNPControl(){
@@ -49,7 +46,7 @@ public class NPCcontroller{
 			}
 			
 			//THINK
-			if(elapsedThinkMilliSecs >= 500.0f){
+			if(elapsedThinkMilliSecs >= 100.0f){
 				lastThinkUpdateTime = currentTime;
 				bt.update(elapsedThinkMilliSecs);
 			}
@@ -57,15 +54,11 @@ public class NPCcontroller{
 			Thread.yield();
 		//}
 	}
-	//If Avatar is nearby, walk toward it. Otherwise, walk in a random direction.
-	//For now, just gets big and small when avatar is nearby.
 	public void setupBehaviorTree(){
 		bt.insertAtRoot(new BTSequence(10));
 		bt.insertAtRoot(new BTSequence(20));
-		bt.insert(10, new AvatarNear(game,this,npcLoc,false));
-		//bt.insert(10, new WalkToward(npc));
+		bt.insert(10, new AvatarNear(game,this,npc.getLocalTranslation().getCol(3),false));
 		bt.insert(10, new GetBig(npc));
-		//bt.insert(20, new WalkRandom(npc));
 		bt.insert(20, new GetSmall(npc));
 	}
 

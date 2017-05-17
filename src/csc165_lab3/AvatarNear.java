@@ -8,9 +8,7 @@ public class AvatarNear extends BTCondition{
 	MyGame game;
 	NPCcontroller npcc;
 	//NPC npc;
-	Point3D npcLoc;
 	
-	public AvatarNear(MyGame g, NPCcontroller c, Point3D n, boolean toNegate){
 		super(toNegate);
 		game = g;
 		npcc = c;
@@ -18,8 +16,6 @@ public class AvatarNear extends BTCondition{
 	}
 	
 	protected boolean check(){
-		Point3D npcP = new Point3D(npcLoc.getX(),npcLoc.getY(),npcLoc.getZ());
-		game.checkAvatarNear(npcP);
 		return npcc.getNearFlag();
 	}
 }
