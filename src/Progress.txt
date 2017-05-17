@@ -1,5 +1,5 @@
-WTF 2 do:
 
+Things to do:
 DONE:	Make it so that gameclient translates the avatar, not just changes the vector
 		on that note, remove the vector, it's not used anywhere else.
 		
@@ -7,7 +7,7 @@ DONE:	sendMoveMessage is not used anywhere, add it to update.
 
 DONE: Replace NPC with ball mine.
 
-Make AI react to ghost avatar as well
+DONE: Make AI react to ghost avatar as well
 
 Replace custom OrbitCameraController with built in camera controller.
 
@@ -18,3 +18,47 @@ DONE: Add entity class to store model in it.
 Go over Movement classes and make sure they actually go in the correct direction.
 
 Make sure to add an event and event listener to the game.
+
+Move players + NPCs to middle of terrain instead of edge.
+
+Make many NPCs, not just one.
+
+
+
+Optional: Update script to make mine locations customizable.
+
+
+Requirements:
+External Models:
+	Met, hero & robot.
+Networked Multi-Player:
+	Met, 2-players.
+Scripting:
+	Partially Met, have script, should probably change to do something more important.
+Skybox and Terrain:
+	Met.
+Events:
+	Not Met, need to assign collision events between local player and npc, and between local player and ghost.
+3D Sound:
+	Not Met, need Austin to add.
+HUD:
+	Met, however should probably change to display something more important.
+Hierarchical SceneGraph:
+	Not Met, change mines to be made of more than 1 primitive.
+Animation:
+	Not Met, need Austin to add.
+NPCs:
+	Partially Met, need to make many NPCs instead of just one.
+Physics:
+	Met, however might want to make it something more impactful, but probably not.
+	
+Additional Notes:
+	FSEM mode works, but Windowed mode doesn't.
+	Need to properly cite source for terrain and skybox.
+	Should change package name to something more fitting (mineGame?)
+	Also change game window title.
+	
+Appendix A (Previous Requirements):
+
+Need to do collision using bounding volumes, can't just use physics.
+Need to have proper package structure (move game-specific code (model loading) out of Entities and into GhostAvatars.
