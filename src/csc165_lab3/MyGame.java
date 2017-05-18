@@ -97,7 +97,6 @@ public class MyGame extends BaseGame{
 	private int mineDistance;
 	
 	private ThirdPersonOrbitCameraController playerCam;
-	//private OrbitCameraController playerCam;
 	private HUDString timeString;
 	private SkyBox skybox;
 	//temp:
@@ -239,9 +238,9 @@ public class MyGame extends BaseGame{
 		IAction mvRight = new MoveRight(player.model, speed, hillTerrain);
 		IAction mvLeft = new MoveLeft(player.model, speed, hillTerrain);
 		
-		IAction mvXAxis = new MoveXAxis(player.model, speed);
-		IAction mvZAxis = new MoveZAxis(player.model, speed);
-
+		IAction mvXAxis = new MoveXAxis(player.model, speed, hillTerrain);
+		IAction mvZAxis = new MoveZAxis(player.model, speed, hillTerrain);
+		
 		if(gpName == null){
 			//Mouse Bindings
 			playerCam = new ThirdPersonOrbitCameraController(camera, player.model, im, msName);
@@ -290,6 +289,14 @@ public class MyGame extends BaseGame{
 		else{
 			player.model.translate((float)player2Loc.getX(),(float)player2Loc.getY(),(float)player2Loc.getZ());
 		}
+		//Set initial vertical position
+		Point3D avLoc = new Point3D(player.model.getLocalTranslation().getCol(3));
+		float x = (float) avLoc.getX();
+		float z = (float) avLoc.getZ();
+		float terHeight = hillTerrain.getHeight(x, z);
+		float desiredHeight = terHeight + (float) hillTerrain.getOrigin().getY() + 0.1f;
+		hillTerrain.getLocalTranslation().setElementAt(1, 3, desiredHeight);
+		
 		addGameWorldObject(player.model);
 		
 		camera = new JOGLCamera(renderer);
