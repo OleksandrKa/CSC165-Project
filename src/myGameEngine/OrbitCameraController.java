@@ -18,7 +18,7 @@ public class OrbitCameraController {
 	private float cameraAzimuth; // rotation of camera around target Y axis
 	private float cameraElevation; // elevation of camera above target
 	private float cameraDistanceFromTarget;
-	private Point3D targetPos; // avatar’s position in the world
+	private Point3D targetPos; // avatarï¿½s position in the world
 	private Vector3D worldUpVec;
 
 	public OrbitCameraController(ICamera cam, SceneNode target, IInputManager inputMgr, String controllerName) {
@@ -72,5 +72,13 @@ public class OrbitCameraController {
 			cameraAzimuth += rotAmount;
 			cameraAzimuth = cameraAzimuth % 360;
 		}
+	}
+
+	public float getAzimuth() {
+		return this.cameraAzimuth;
+	}
+
+	public void setAzimuth(float camAzimuth) {
+		this.cameraAzimuth = camAzimuth;
 	}
 }

@@ -13,6 +13,8 @@ public class NPC extends Group{
 	
 	public NPC(){
 		npcModel = new Sphere(1.0,16,16, Color.red);
+		npcModel.updateLocalBound();
+		npcModel.updateWorldBound();
 		this.addChild(npcModel);
 	}
 	

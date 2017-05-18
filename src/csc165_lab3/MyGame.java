@@ -59,22 +59,25 @@ import sage.terrain.HillHeightMap;
 import sage.terrain.TerrainBlock;
 import sage.texture.Texture;
 import sage.texture.TextureManager;
+//Sound
+import sage.audio.*;
+import com.jogamp.openal.ALFactory;
 
-public class MyGame extends BaseGame{
-	
+public class MyGame extends BaseGame {
+
 	GameClientTCP thisClient;
-	
+
 	//Server Data
 	private String serverAddress;
 	private int serverPort;
 	private ProtocolType serverProtocol;
 	private char playerAvatar;
-	
+
 	//Script Data
 	ScriptEngineManager factory;
 	String scriptFileName;
 	ScriptEngine jsEngine;
-	
+
 	//Interfaces
 	IDisplaySystem display;
 	IInputManager im;
@@ -84,25 +87,25 @@ public class MyGame extends BaseGame{
 	IPhysicsEngine physicsEngine;
 	IPhysicsObject crashPodP, terrainP;
 	DisplaySettingsDialog displayDialog;
-	
+
 	//Game Objects
 	private Entity player;
 	private Point3D player1Loc;
 	private Point3D player2Loc;
-	
+
 	Group mines;
 	private NPC[] mine;
 	private int mineCount;
 	private Point3D[] mineLoc;
 	private int mineDistance;
-	
+
 	private ThirdPersonOrbitCameraController playerCam;
 	//private OrbitCameraController playerCam;
 	private HUDString timeString;
 	private SkyBox skybox;
 	//temp:
 	private Cylinder crashPod;
-	
+
 	//Game Data
 	private float speed = 0.02f;
 	private float time = 0;
@@ -111,20 +114,24 @@ public class MyGame extends BaseGame{
 
 	//Terrain
 	private TerrainBlock hillTerrain;
-	
+
 	//NPC
 	private NPCcontroller[] npcCtrl;
 
-	public MyGame(String serverAddr, int sPort){
+	//Sound
+	IAudioManager audioMgr;
+	Sound bgSound, npcSound, beepSound, explosionSound;
+
+	public MyGame(String serverAddr, int sPort) {
 		super();
 		this.serverAddress = serverAddr;
 		this.serverPort = sPort;
 		this.serverProtocol = ProtocolType.TCP;
 		this.playerAvatar = selectAvatar();
-		
+
 	}
-	
-	public void initGame(){
+
+	public void initGame() {
 		initScript();
 		initNetwork();
 		initDisplay();
@@ -135,9 +142,10 @@ public class MyGame extends BaseGame{
 		initPlayer();
 		initNPC();
 		initActions();
+		initAudio();
 	}
-	
-	protected void initSystem(){
+
+	protected void initSystem() {
 		//call a local method to create a DisplaySystem object.
 		display = createDisplaySystem();
 		setDisplaySystem(display);
@@ -148,80 +156,95 @@ public class MyGame extends BaseGame{
 		ArrayList<SceneNode> gameWorld = new ArrayList<SceneNode>();
 		setGameWorld(gameWorld);
 	}
-	
-	public void update(float elapsedTimeMS){
+
+	public void update(float elapsedTimeMS) {
 		Point3D camLoc = camera.getLocation();
 		Matrix3D camTranslation = new Matrix3D();
 		camTranslation.translate(camLoc.getX(), camLoc.getY(), camLoc.getZ());
 		skybox.setLocalTranslation(camTranslation);
-		
-		
+
 		time += elapsedTimeMS;
 		DecimalFormat df = new DecimalFormat("0.0");
 		timeString.setText("Time = " + df.format(time / 1000));
 		playerCam.update(elapsedTimeMS);
-		
-		if(thisClient != null){
+
+		if (thisClient != null) {
 			thisClient.processPackets();
 			thisClient.sendMoveMessage(player.model.getLocalTranslation().getCol(3));
 		}
-		
-		
+
 		//Physics Processing.
 		Matrix3D mat;
 		physicsEngine.update(20.0f);
-		for(SceneNode s : getGameWorld()){
-			if(s.getPhysicsObject() != null){
+		for (SceneNode s : getGameWorld()) {
+			if (s.getPhysicsObject() != null) {
 				mat = new Matrix3D(s.getPhysicsObject().getTransform());
-				s.getLocalTranslation().setCol(3,mat.getCol(3));
+				s.getLocalTranslation().setCol(3, mat.getCol(3));
 				//TODO: should also get and apply rotation.
 			}
 		}
-		
+
 		//AI Processing.
-		for(int i = 0; i < mineCount; i++)
+		for (int i = 0; i < mineCount; i++)
 			npcCtrl[i].npcLoop();
-		
+
+		// Update 3D Sound direction
+		//npcSound.setLocation(new Point3D(mines.getWorldTranslation().getCol(3)));
+		setEarParameters();
+
+		for (SceneNode s : mines) {
+			if (s != null) {
+				if (player.model.getWorldBound().intersects(s.getWorldBound())) {
+					System.out.println("BOOM");
+					explosionSound.play(100, false);
+				}
+			}
+		}
+
 		// tell BaseGame to update game world state
 		super.update(elapsedTimeMS);
 
 	}
-	
-	private void initScript(){
+
+	private void initScript() {
 		factory = new ScriptEngineManager();
 		scriptFileName = "init.js";
 		jsEngine = factory.getEngineByName("js");
-		
+
 	}
-	
-	private void initNetwork(){
-		try{
+
+	private void initNetwork() {
+		try {
 			thisClient = new GameClientTCP(InetAddress.getByName(serverAddress), serverPort, serverProtocol, this);
+		} catch (UnknownHostException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
-		catch(UnknownHostException e){ e.printStackTrace(); }
-		catch(IOException e)  { e.printStackTrace(); }
-		
-		if(thisClient != null) { thisClient.sendJoinMessage(playerAvatar); }
+
+		if (thisClient != null) {
+			thisClient.sendJoinMessage(playerAvatar);
+		}
 	}
-	
-	private void initDisplay(){
+
+	private void initDisplay() {
 		display = getDisplaySystem();
 		System.out.println(display.getRenderer().toString());
 		display.setTitle("CSC165 Project#3");
 		renderer = display.getRenderer();
 	}
-	
-	private void initActions(){
+
+	private void initActions() {
 		im = getInputManager();
 		eventMg = EventManager.getInstance();
-		
+
 		//String gpName = im.getFirstGamepadName();
 		//String kbName = im.getKeyboardName();
 		String msName = im.getMouseName();
 
 		playerCam = new ThirdPersonOrbitCameraController(camera, player.model, im, msName);
 		playerCam.enableSnapback();
-		
+
 		//playerCam = new OrbitCameraController(camera, player.model, im, kbName);
 
 		// Gamepad Bindings
@@ -239,72 +262,73 @@ public class MyGame extends BaseGame{
 		IAction mvBack = new MoveBack(player.model, speed, hillTerrain);
 		IAction mvRight = new MoveRight(player.model, speed, hillTerrain);
 		IAction mvLeft = new MoveLeft(player.model, speed, hillTerrain);
-		
+
 		im.associateAction(msName, net.java.games.input.Component.Identifier.Button.MIDDLE, mvForward,
 				IInputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
-/*
-		im.associateAction(kbName, net.java.games.input.Component.Identifier.Key.D, mvForward,
-				IInputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
-		im.associateAction(kbName, net.java.games.input.Component.Identifier.Key.A, mvBack,
-				IInputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
-		im.associateAction(kbName, net.java.games.input.Component.Identifier.Key.S, mvRight,
-				IInputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
-		im.associateAction(kbName, net.java.games.input.Component.Identifier.Key.W, mvLeft,
-				IInputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
-		im.associateAction(kbName, net.java.games.input.Component.Identifier.Key.ESCAPE, escQuit,
-				IInputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
-*/
+		/*
+				im.associateAction(kbName, net.java.games.input.Component.Identifier.Key.D, mvForward,
+						IInputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+				im.associateAction(kbName, net.java.games.input.Component.Identifier.Key.A, mvBack,
+						IInputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+				im.associateAction(kbName, net.java.games.input.Component.Identifier.Key.S, mvRight,
+						IInputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+				im.associateAction(kbName, net.java.games.input.Component.Identifier.Key.W, mvLeft,
+						IInputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+				im.associateAction(kbName, net.java.games.input.Component.Identifier.Key.ESCAPE, escQuit,
+						IInputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+		*/
 		// List out controllers
 		//f = new FindComponents();
 		//f.listControllers();
 	}
 
-	private void initPlayer(){
+	private void initPlayer() {
 		//TODO: Replace with a local avatar class, add a variable containing the local avatar class to ghostavatar.
-		player = new Entity(UUID.fromString("00000000-0000-0000-0000-000000000000")
-								, new Vector3D(0,0,0), playerAvatar, display);
+		player = new Entity(UUID.fromString("00000000-0000-0000-0000-000000000000"), new Vector3D(0, 0, 0),
+				playerAvatar, display);
 		//player.model.translate(0,0,0);
-		if(thisClient.entity == null){
-			player.model.translate((float)player1Loc.getX(),(float)player1Loc.getY(),(float)player1Loc.getZ());
+		if (thisClient.entity == null) {
+			player.model.translate((float) player1Loc.getX(), (float) player1Loc.getY(), (float) player1Loc.getZ());
+		} else {
+			player.model.translate((float) player2Loc.getX(), (float) player2Loc.getY(), (float) player2Loc.getZ());
 		}
-		else{
-			player.model.translate((float)player2Loc.getX(),(float)player2Loc.getY(),(float)player2Loc.getZ());
-		}
-		player.model.rotate(180, new Vector3D(0,1,0));
+		player.model.rotate(180, new Vector3D(0, 1, 0));
 		addGameWorldObject(player.model);
-		
+
 		camera = new JOGLCamera(renderer);
 		camera.setPerspectiveFrustum(60, 1, 0.01, 10000);
 		//camera.setViewDirection(new Vector3D(-1, 0, 1));
 		//camera.setViewport(0.0, 1.0, 0.0, 0.45);
-		
+
 		initHUD();
 	}
-	
-	private void initHUD(){
+
+	private void initHUD() {
 		HUDString playerID;
-		if( playerAvatar == 'h') playerID = new HUDString("Hero");
-		else 					playerID = new HUDString("Robot");
-		
+		if (playerAvatar == 'h')
+			playerID = new HUDString("Hero");
+		else
+			playerID = new HUDString("Robot");
+
 		playerID.setName("Player1ID");
 		playerID.setLocation(0.01, 0.1);
 		playerID.setRenderMode(sage.scene.SceneNode.RENDER_MODE.ORTHO);
 		playerID.setColor(Color.YELLOW);
 		playerID.setCullMode(sage.scene.SceneNode.CULL_MODE.NEVER);
 		camera.addToHUD(playerID);
-		
+
 		timeString = new HUDString("Time = " + time);
 		timeString.setLocation(0, 0.05); // (0,0) [lower-left] to (1,1)
 		camera.addToHUD(timeString);
-		
+
 		HUDString mineNum = new HUDString(mineCount + " Mines");
-		mineNum.setLocation(0.05,0.15);
+		mineNum.setLocation(0.05, 0.15);
 		camera.addToHUD(mineNum);
 	}
-	
-	private void initGameObjects(){
+
+	private void initGameObjects() {
 		//#ifndef TESTONSINGLECOMPUTER
-		
+
 		// construct a skybox for the scene
 		skybox = new SkyBox("SkyBox", 20.0f, 20.0f, 20.0f);
 		// load skybox textures
@@ -314,7 +338,7 @@ public class MyGame extends BaseGame{
 		Texture rightTex = TextureManager.loadTexture2D("./images/lakes_rt.bmp");
 		Texture topTex = TextureManager.loadTexture2D("./images/lakes_up.bmp");
 		Texture bottomTex = TextureManager.loadTexture2D("./images/lakes_dn.bmp");
-		
+
 		//...etc...
 		// attach textures to skybox
 		skybox.setTexture(SkyBox.Face.North, frontTex);
@@ -324,10 +348,7 @@ public class MyGame extends BaseGame{
 		skybox.setTexture(SkyBox.Face.Up, topTex);
 		skybox.setTexture(SkyBox.Face.Down, bottomTex);
 		addGameWorldObject(skybox);
-		
-		
-		
-		
+
 		/*
 		Point3D origin = new Point3D(0, 0, 0);
 		Point3D xEnd = new Point3D(100, 0, 0);
@@ -344,42 +365,40 @@ public class MyGame extends BaseGame{
 		Line zAxis = (Line) jsEngine.get("zAxis");
 		addGameWorldObject(zAxis);
 		*/
-		
+
 		//TODO: Remove demo sphere, add objects for game.
 		//Valid range for players is 5,0,5 to 285,0,285.
 
 		this.executeScript(jsEngine, scriptFileName);
-		
-		
+
 		player1Loc = (Point3D) jsEngine.get("player1Loc");
 		player2Loc = (Point3D) jsEngine.get("player2Loc");
-		crashPod = new Cylinder(2,1,16,16);
+		crashPod = new Cylinder(2, 1, 16, 16);
 		crashPod.setColor(Color.white);
 		crashPod.setSolid(true);
-		
+
 		Matrix3D translateM = new Matrix3D();
-		if(thisClient.entity == null){
-			translateM.translate((float)player2Loc.getX(),100f,(float)player2Loc.getZ());
-		}
-		else{
-			translateM.translate((float)player1Loc.getX(),100f,(float)player1Loc.getZ());
+		if (thisClient.entity == null) {
+			translateM.translate((float) player2Loc.getX(), 100f, (float) player2Loc.getZ());
+		} else {
+			translateM.translate((float) player1Loc.getX(), 100f, (float) player1Loc.getZ());
 		}
 		crashPod.setLocalTranslation(translateM);
-		
+
 		addGameWorldObject(crashPod);
 
 		crashPod.updateGeometricState(1.0f, true);
-		
+
 		float mass = 1.0f;
-		crashPodP = physicsEngine.addSphereObject(physicsEngine.nextUID(), 
-				mass, crashPod.getWorldTransform().getValues(), 1.0f);
+		crashPodP = physicsEngine.addSphereObject(physicsEngine.nextUID(), mass,
+				crashPod.getWorldTransform().getValues(), 1.0f);
 		crashPodP.setBounciness(1.0f);
 		crashPod.setPhysicsObject(crashPodP);
 	}
-	
+
 	private void initNPC() {
 		/*OBJLoader loader = new OBJLoader();
-
+		
 		// Instantiate Hero NPC
 		
 		heroNPC = loader.loadModel("./images/hero.obj");
@@ -395,28 +414,30 @@ public class MyGame extends BaseGame{
 		heroState.setTexture(heroTexture, 0);
 		heroState.setEnabled(true);
 		heroNPC.setRenderState(heroState);*/
-		
+
 		mineCount = (int) jsEngine.get("mineCount");
 		mineDistance = (int) jsEngine.get("mineDistance");
 		mine = new NPC[mineCount];
 		mineLoc = new Point3D[mineCount];
 		npcCtrl = new NPCcontroller[mineCount];
-		
+
 		mines = new Group("root");
 		Random randomGenerator = new Random();
-		
-		for(int i=0; i<mineCount; i++){
-			
-			mineLoc[i] = new Point3D(randomGenerator.nextInt(285+1)+5, 0, randomGenerator.nextInt(285+1)+5);
-			
-			mine[i] = new NPC(); 
+
+		for (int i = 0; i < mineCount; i++) {
+
+			mineLoc[i] = new Point3D(randomGenerator.nextInt(285 + 1) + 5, 0, randomGenerator.nextInt(285 + 1) + 5);
+
+			mine[i] = new NPC();
 			mine[i].translate((float) mineLoc[i].getX(), (float) mineLoc[i].getY(), (float) mineLoc[i].getZ());
 			npcCtrl[i] = new NPCcontroller(this, mine[i]);
 			npcCtrl[i].startNPControl();
-			
+
+			mine[i].updateLocalBound();
+			mine[i].updateWorldBound();
+
 			mines.addChild(mine[i]);
 		}
-		
 
 		// Add NPCs to world
 		addGameWorldObject(mines);
@@ -451,17 +472,17 @@ public class MyGame extends BaseGame{
 		// apply the texture to the terrain
 		hillTerrain.setRenderState(grassState);
 		addGameWorldObject(hillTerrain);
-		
+
 		hillTerrain.updateGeometricState(1.0f, true);
-		
+
 		//Add Terrain Physics
-		float up[] = {0,1,0};
-		terrainP = physicsEngine.addStaticPlaneObject(physicsEngine.nextUID(), 
-					hillTerrain.getWorldTransform().getValues(), up, 0.0f);
+		float up[] = { 0, 1, 0 };
+		terrainP = physicsEngine.addStaticPlaneObject(physicsEngine.nextUID(),
+				hillTerrain.getWorldTransform().getValues(), up, 0.0f);
 		terrainP.setBounciness(0.0f);
 		//remove this line for ODE4J.
 		hillTerrain.setPhysicsObject(terrainP);
-		
+
 		//TODO: should also set damping, friction, etc.
 	}
 
@@ -470,10 +491,10 @@ public class MyGame extends BaseGame{
 		String engine = "sage.physics.JBullet.JBulletPhysicsEngine";
 		physicsEngine = PhysicsEngineFactory.createPhysicsEngine(engine);
 		physicsEngine.initSystem();
-		float[] gravity = {0, -1f, 0};
+		float[] gravity = { 0, -1f, 0 };
 		physicsEngine.setGravity(gravity);
 	}
-	
+
 	private TerrainBlock createTerBlock(AbstractHeightMap heightMap) {
 		float heightScale = 0.05f;
 		Vector3D terrainScale = new Vector3D(1, heightScale, 1);
@@ -486,6 +507,52 @@ public class MyGame extends BaseGame{
 		String name = "Terrain:" + heightMap.getClass().getSimpleName();
 		TerrainBlock tb = new TerrainBlock(name, terrainSize, terrainScale, heightMap.getHeightData(), terrainOrigin);
 		return tb;
+	}
+
+	private void initAudio() {
+		AudioResource resource1, resource2, resource3;
+		audioMgr = AudioManagerFactory.createAudioManager("sage.audio.joal.JOALAudioManager");
+		if (!audioMgr.initialize()) {
+			System.out.println("Audio Manager failed to initialize!");
+			return;
+		}
+		resource1 = audioMgr.createAudioResource("./sounds/beep.wav", AudioResourceType.AUDIO_SAMPLE);
+		resource2 = audioMgr.createAudioResource("./sounds/FamiliarRoads.wav", AudioResourceType.AUDIO_STREAM);
+		resource3 = audioMgr.createAudioResource("./sounds/explosion.wav", AudioResourceType.AUDIO_SAMPLE);
+		//npcSound = new Sound(resource1, SoundType.SOUND_EFFECT, 100, true);
+		beepSound = new Sound(resource1, SoundType.SOUND_EFFECT, 100, true);
+		explosionSound = new Sound(resource1, SoundType.SOUND_EFFECT, 100, true);
+		bgSound = new Sound(resource2, SoundType.SOUND_EFFECT, 60, true);
+		//npcSound.initialize(audioMgr);
+		beepSound.initialize(audioMgr);
+		explosionSound.initialize(audioMgr);
+		bgSound.initialize(audioMgr);
+		//npcSound.setMaxDistance(4.0f);
+		//npcSound.setMinDistance(1.0f);
+		//npcSound.setRollOff(5.0f);
+		explosionSound.setLocation(new Point3D(0, 0, 0));
+		explosionSound.setMaxDistance(50.0f);
+		explosionSound.setMinDistance(3.0f);
+		explosionSound.setRollOff(5.0f);
+
+		bgSound.setLocation(new Point3D(0, 0, 0));
+		bgSound.setMaxDistance(50.0f);
+		bgSound.setMinDistance(3.0f);
+		bgSound.setRollOff(5.0f);
+		//npcSound.setLocation(new Point3D(5,0,5));
+		setEarParameters();
+		//npcSound.play();
+		bgSound.play(100, true);
+	}
+
+	public void setEarParameters() {
+		Matrix3D avDir = (Matrix3D) (player.model.getWorldRotation().clone());
+		float camAz = playerCam.getAzimuth();
+		avDir.rotateY(180.0f - camAz);
+		Vector3D camDir = new Vector3D(0, 0, 1);
+		camDir = camDir.mult(avDir);
+		audioMgr.getEar().setLocation(camera.getLocation());
+		audioMgr.getEar().setOrientation(camDir, new Vector3D(0, 1, 0));
 	}
 
 	private char selectAvatar() {
@@ -501,23 +568,23 @@ public class MyGame extends BaseGame{
 			return 0;
 	}
 
-	private void executeScript(ScriptEngine engine, String scriptFileName){
-		try{
+	private void executeScript(ScriptEngine engine, String scriptFileName) {
+		try {
 			FileReader fileReader = new FileReader(scriptFileName);
 			engine.eval(fileReader);
 			fileReader.close();
+		} catch (FileNotFoundException e1) {
+			System.out.println(scriptFileName + " not found " + e1);
+		} catch (IOException e2) {
+			System.out.println("IO problem with " + scriptFileName + e2);
+		} catch (ScriptException e3) {
+			System.out.println("ScriptException in " + scriptFileName + e3);
+		} catch (NullPointerException e4) {
+			System.out.println("Null ptr exception in " + scriptFileName + e4);
 		}
-		catch (FileNotFoundException e1)
-		{  System.out.println(scriptFileName + " not found " + e1); }
-		catch (IOException e2)
-		{  System.out.println("IO problem with " + scriptFileName + e2); }
-		catch (ScriptException e3)
-		{ System.out.println("ScriptException in " + scriptFileName + e3); }
-		catch (NullPointerException e4)
-		{ System.out.println ("Null ptr exception in " + scriptFileName + e4); }
 	}
-	
-	private IDisplaySystem createDisplaySystem(){
+
+	private IDisplaySystem createDisplaySystem() {
 		GraphicsEnvironment environment = GraphicsEnvironment.getLocalGraphicsEnvironment();
 		GraphicsDevice device = environment.getDefaultScreenDevice();
 		displayDialog = new DisplaySettingsDialog(device);
@@ -550,8 +617,8 @@ public class MyGame extends BaseGame{
 		System.out.println();
 		return display;
 	}
-	
-	protected void render(){
+
+	protected void render() {
 		renderer.setCamera(camera);
 		super.render();
 	}
@@ -559,53 +626,53 @@ public class MyGame extends BaseGame{
 	public void start() {
 		super.start();
 	}
-	
-	protected void shutdown(){
+
+	protected void shutdown() {
 		super.shutdown();
-		if(thisClient != null){
+		if (thisClient != null) {
 			thisClient.sendByeMessage();
-			try{ thisClient.shutdown(); }
-			catch(IOException e){ e.printStackTrace(); }
+			try {
+				thisClient.shutdown();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
 		display.close();
 	}
-	
-	public void setIsConnected(boolean flag){
+
+	public void setIsConnected(boolean flag) {
 		isConnected = flag;
 	}
-	
-	public Vector3D getPlayerPosition(){
+
+	public Vector3D getPlayerPosition() {
 		return player.model.getLocalTranslation().getCol(3);
 	}
-	
-	public void addGameWorldObject(SceneNode s){
+
+	public void addGameWorldObject(SceneNode s) {
 		super.addGameWorldObject(s);
 	}
-	public boolean removeGameWorldObject(SceneNode s){
+
+	public boolean removeGameWorldObject(SceneNode s) {
 		return super.removeGameWorldObject(s);
 	}
 
 	public void checkAvatarNear(NPCcontroller npcc, Vector3D npcP) {
 		boolean isNear = false;
 		Vector3D avLoc = player.model.getLocalTranslation().getCol(3);
-		
-		
+
 		if (Math.abs(npcP.getX() - avLoc.getX()) <= mineDistance
-			&& Math.abs(npcP.getZ() - avLoc.getZ()) <= mineDistance)
-		{
+				&& Math.abs(npcP.getZ() - avLoc.getZ()) <= mineDistance) {
 			isNear = true;
 		}
-		
-		if(thisClient != null && thisClient.entity != null){
+
+		if (thisClient != null && thisClient.entity != null) {
 			Vector3D ghostLoc = thisClient.entity.model.getLocalTranslation().getCol(3);
 			if (Math.abs(npcP.getX() - ghostLoc.getX()) <= mineDistance
-					&& Math.abs(npcP.getZ() - ghostLoc.getZ()) <= mineDistance)
-			{
+					&& Math.abs(npcP.getZ() - ghostLoc.getZ()) <= mineDistance) {
 				isNear = true;
 			}
 		}
-		
-		
+
 		npcc.setNearFlag(isNear);
 	}
 }
