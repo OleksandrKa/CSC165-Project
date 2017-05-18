@@ -1,4 +1,4 @@
-package myGameEngine;
+package csc165_lab3;
 
 import java.util.UUID;
 
@@ -30,7 +30,6 @@ public class Entity{
 		if(avatarType == 'r'){
 			model = loader.loadModel("./images/robot.obj");
 			modelTexture = TextureManager.loadTexture2D("./images/robotTexture.png");
-			//model.rotate(90, new Vector3D(0,1,0));
 		}
 		
 		model.updateLocalBound();

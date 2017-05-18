@@ -5,8 +5,8 @@ import java.net.InetAddress;
 import java.util.UUID;
 
 import graphicslib3D.Vector3D;
-import myGameEngine.Entity;
 import sage.networking.client.GameConnectionClient;
+import csc165_lab3.Entity;
 
 public class GameClientTCP extends GameConnectionClient{
 	private MyGame game;
@@ -125,13 +125,11 @@ public class GameClientTCP extends GameConnectionClient{
 	
 	private void createGhostAvatar(UUID remID, Vector3D pos, char remoteAvatar){
 		this.entity = new Entity(remID, pos, remoteAvatar, game.display);
-		System.out.print("Add entity\n\n");
 		game.addGameWorldObject(this.entity.model);
 	}
 	private void removeGhostAvatar(UUID remID){
 		//if(this.entity.id == remID){
 			game.removeGameWorldObject(this.entity.model);
-			System.out.print("StringStringString\n\n\n\n\n");
 			this.entity = null;
 		//}
 	}
@@ -147,14 +145,10 @@ public class GameClientTCP extends GameConnectionClient{
 			System.out.print("null remID");
 		}*/
 		if(this.entity != null){
-			System.out.print("not null entity");
 			//if(this.entity.id == remID){
 				System.out.print("updatePos");
 				this.entity.updatePosition(ghostPos);
 			//}
-		}
-		else{
-			System.out.print("null entity");
 		}
 	}
 }

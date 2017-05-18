@@ -20,7 +20,6 @@ import javax.script.ScriptException;
 import graphicslib3D.Matrix3D;
 import graphicslib3D.Point3D;
 import graphicslib3D.Vector3D;
-import myGameEngine.Entity;
 import myGameEngine.MoveBack;
 import myGameEngine.MoveForward;
 import myGameEngine.MoveLeft;
@@ -28,6 +27,7 @@ import myGameEngine.MoveRight;
 import myGameEngine.MoveXAxis;
 import myGameEngine.MoveZAxis;
 import myGameEngine.MyDisplaySystem;
+import myGameEngine.OrbitCameraController;
 import myGameEngine.QuitGameAction;
 import sage.app.BaseGame;
 import sage.camera.ICamera;
@@ -96,6 +96,7 @@ public class MyGame extends BaseGame{
 	private Point3D[] mineLoc;
 	
 	private ThirdPersonOrbitCameraController playerCam;
+	//private OrbitCameraController playerCam;
 	private HUDString timeString;
 	private SkyBox skybox;
 	//temp:
@@ -161,9 +162,7 @@ public class MyGame extends BaseGame{
 		
 		if(thisClient != null){
 			thisClient.processPackets();
-			System.out.print("test\n");
 			thisClient.sendMoveMessage(player.model.getLocalTranslation().getCol(3));
-			System.out.print("afterTest\n");
 		}
 		
 		
@@ -216,11 +215,13 @@ public class MyGame extends BaseGame{
 		eventMg = EventManager.getInstance();
 		
 		//String gpName = im.getFirstGamepadName();
-		String kbName = im.getKeyboardName();
+		//String kbName = im.getKeyboardName();
 		String msName = im.getMouseName();
 
 		playerCam = new ThirdPersonOrbitCameraController(camera, player.model, im, msName);
 		playerCam.enableSnapback();
+		
+		//playerCam = new OrbitCameraController(camera, player.model, im, kbName);
 
 		// Gamepad Bindings
 		IAction mvXAxis = new MoveXAxis(player.model, speed);
@@ -237,7 +238,10 @@ public class MyGame extends BaseGame{
 		IAction mvBack = new MoveBack(player.model, speed, hillTerrain);
 		IAction mvRight = new MoveRight(player.model, speed, hillTerrain);
 		IAction mvLeft = new MoveLeft(player.model, speed, hillTerrain);
-
+		
+		im.associateAction(msName, net.java.games.input.Component.Identifier.Button.MIDDLE, mvForward,
+				IInputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+/*
 		im.associateAction(kbName, net.java.games.input.Component.Identifier.Key.D, mvForward,
 				IInputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
 		im.associateAction(kbName, net.java.games.input.Component.Identifier.Key.A, mvBack,
@@ -248,7 +252,7 @@ public class MyGame extends BaseGame{
 				IInputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
 		im.associateAction(kbName, net.java.games.input.Component.Identifier.Key.ESCAPE, escQuit,
 				IInputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
-
+*/
 		// List out controllers
 		//f = new FindComponents();
 		//f.listControllers();
@@ -259,13 +263,13 @@ public class MyGame extends BaseGame{
 		player = new Entity(UUID.fromString("00000000-0000-0000-0000-000000000000")
 								, new Vector3D(0,0,0), playerAvatar, display);
 		//player.model.translate(0,0,0);
-		if(playerAvatar == 'h'){
-			player.model.rotate(90, new Vector3D(0, 1, 0));
+		if(thisClient.entity == null){
+			player.model.translate(250,0,250);
 		}
-		if(playerAvatar == 'r'){
-			player.model.rotate(90, new Vector3D(0, 1, 0));
+		else{
+			player.model.translate(50,0,50);
 		}
-		player.model.translate(10,0,10);
+		player.model.rotate(180, new Vector3D(0,1,0));
 		addGameWorldObject(player.model);
 		
 		camera = new JOGLCamera(renderer);
@@ -278,8 +282,8 @@ public class MyGame extends BaseGame{
 	
 	private void initHUD(){
 		HUDString playerID;
-		if( playerAvatar == 'p') playerID = new HUDString("Pyramid");
-		else 					playerID = new HUDString("AntiPyramid");
+		if( playerAvatar == 'h') playerID = new HUDString("Hero");
+		else 					playerID = new HUDString("Robot");
 		
 		playerID.setName("Player1ID");
 		playerID.setLocation(0.01, 0.1);
@@ -290,7 +294,7 @@ public class MyGame extends BaseGame{
 		
 		timeString = new HUDString("Time = " + time);
 		timeString.setLocation(0, 0.05); // (0,0) [lower-left] to (1,1)
-		addGameWorldObject(timeString);
+		camera.addToHUD(timeString);
 	}
 	
 	private void initGameObjects(){

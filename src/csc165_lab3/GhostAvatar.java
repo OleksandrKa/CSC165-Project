@@ -3,16 +3,46 @@ package csc165_lab3;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
+import sage.model.loader.OBJLoader;
 import sage.scene.TriMesh;
+import sage.scene.state.TextureState;
+import sage.texture.Texture;
+import sage.texture.TextureManager;
 
-public class GhostAvatar extends TriMesh{
-	public static float[] vrts;
-	public static float[] cl;
-	public static int[] triangles;
+public class GhostAvatar{
+	//public static float[] vrts;
+	//public static float[] cl;
+	//public static int[] triangles;
+	TriMesh avatarModel 
 	
 	public GhostAvatar(char avatarType){
 		
-		//Replace with loading avatar model/texture.
+		OBJLoader loader = new OBJLoader();
+		Texture modelTexture = null;
+		TriMesh 
+		
+		if(avatarType == 'h'){
+			this = loader.loadModel("./images/hero.obj");
+			modelTexture = TextureManager.loadTexture2D("./images/heroTexture.png");
+		}
+		if(avatarType == 'r'){
+			model = loader.loadModel("./images/robot.obj");
+			modelTexture = TextureManager.loadTexture2D("./images/robotTexture.png");
+			//model.rotate(90, new Vector3D(0,1,0));
+		}
+		
+		model.updateLocalBound();
+		
+		//Apply Texture
+		TextureState modelState;
+		modelTexture.setWrapMode(Texture.WrapMode.Repeat);
+		modelTexture.setApplyMode(sage.texture.Texture.ApplyMode.Replace);
+		modelState = (TextureState) display.getRenderer().createRenderState(RenderStateType.Texture);
+		modelState.setTexture(modelTexture, 0);
+		modelState.setEnabled(true);
+		this.setRenderState(modelState);
+		
+		/*//Replace with loading avatar model/texture.
 		if(avatarType == 'd'){
 			vrts = new float[] {0,-1,0,-1,1,1,1,1,1,1,1,-1,-1,1,-1,
 											  0,-0.9f,0};
@@ -33,6 +63,6 @@ public class GhostAvatar extends TriMesh{
 		
 		this.setVertexBuffer(vertBuf);
 		this.setColorBuffer(colorBuf);
-		this.setIndexBuffer(triangleBuf);
+		this.setIndexBuffer(triangleBuf);*/
 	}
 }
