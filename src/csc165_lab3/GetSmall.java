@@ -13,7 +13,7 @@ public class GetSmall extends BTAction{
 	}
 	
 	protected BTStatus update(float elapsedTime){
-		if(npc.npcModel.getLocalScale().getRow(0).getX() <= 0.01){
+		if(npc.getLocalScale().getRow(0).getX() <= 0.01){
 			npc.growingOrShrinking = 'n';
 		}
 		else{

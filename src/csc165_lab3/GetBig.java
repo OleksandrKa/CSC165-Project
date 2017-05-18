@@ -13,8 +13,12 @@ public class GetBig extends BTAction{
 	}
 	
 	protected BTStatus update(float elapsedTime){
+		if(npc.npcModel.getLocalScale().getRow(0).getX() <= 0.1){
+			Matrix3D scaleM = new Matrix3D();
+			scaleM.scale(0.1, 0.1, 0.1);
+			npc.setLocalScale(scaleM);
+		}
 		npc.growingOrShrinking = 'g';
-		
 		return BTStatus.BH_SUCCESS;
 	}
 }

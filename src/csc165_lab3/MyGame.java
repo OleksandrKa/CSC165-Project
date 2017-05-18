@@ -28,7 +28,6 @@ import myGameEngine.MoveRight;
 import myGameEngine.MoveXAxis;
 import myGameEngine.MoveZAxis;
 import myGameEngine.MyDisplaySystem;
-import myGameEngine.OrbitCameraController;
 import myGameEngine.QuitGameAction;
 import sage.app.BaseGame;
 import sage.camera.ICamera;
@@ -53,9 +52,6 @@ import sage.scene.HUDString;
 import sage.scene.SceneNode;
 import sage.scene.SkyBox;
 import sage.scene.shape.Cylinder;
-import sage.scene.shape.Line;
-//temp:
-import sage.scene.shape.Sphere;
 import sage.scene.state.RenderState.RenderStateType;
 import sage.scene.state.TextureState;
 import sage.terrain.AbstractHeightMap;
@@ -98,6 +94,7 @@ public class MyGame extends BaseGame{
 	private NPC[] mine;
 	private int mineCount;
 	private Point3D[] mineLoc;
+	private int mineDistance;
 	
 	private ThirdPersonOrbitCameraController playerCam;
 	//private OrbitCameraController playerCam;
@@ -299,6 +296,10 @@ public class MyGame extends BaseGame{
 		timeString = new HUDString("Time = " + time);
 		timeString.setLocation(0, 0.05); // (0,0) [lower-left] to (1,1)
 		camera.addToHUD(timeString);
+		
+		HUDString mineNum = new HUDString(mineCount + " Mines");
+		mineNum.setLocation(0.05,0.15);
+		camera.addToHUD(mineNum);
 	}
 	
 	private void initGameObjects(){
@@ -326,7 +327,15 @@ public class MyGame extends BaseGame{
 		
 		
 		
-		this.executeScript(jsEngine, scriptFileName);
+		
+		/*
+		Point3D origin = new Point3D(0, 0, 0);
+		Point3D xEnd = new Point3D(100, 0, 0);
+		Point3D yEnd = new Point3D(0, 100, 0);
+		Point3D zEnd = new Point3D(0, 0, 100);
+		Line xAxis = new Line(origin, xEnd, Color.red, 2);
+		Line yAxis = new Line(origin, yEnd, Color.green, 2);
+		Line zAxis = new Line(origin, zEnd, Color.blue, 2);
 		
 		Line xAxis = (Line) jsEngine.get("xAxis");
 		addGameWorldObject(xAxis);
@@ -334,11 +343,16 @@ public class MyGame extends BaseGame{
 		addGameWorldObject(yAxis);
 		Line zAxis = (Line) jsEngine.get("zAxis");
 		addGameWorldObject(zAxis);
+		*/
 		
 		//TODO: Remove demo sphere, add objects for game.
 		//Valid range for players is 5,0,5 to 285,0,285.
-		player1Loc = new Point3D(50,0,50);
-		player2Loc = new Point3D(240,0,240);
+
+		this.executeScript(jsEngine, scriptFileName);
+		
+		
+		player1Loc = (Point3D) jsEngine.get("player1Loc");
+		player2Loc = (Point3D) jsEngine.get("player2Loc");
 		crashPod = new Cylinder(2,1,16,16);
 		crashPod.setColor(Color.white);
 		crashPod.setSolid(true);
@@ -382,7 +396,8 @@ public class MyGame extends BaseGame{
 		heroState.setEnabled(true);
 		heroNPC.setRenderState(heroState);*/
 		
-		mineCount = 100;
+		mineCount = (int) jsEngine.get("mineCount");
+		mineDistance = (int) jsEngine.get("mineDistance");
 		mine = new NPC[mineCount];
 		mineLoc = new Point3D[mineCount];
 		npcCtrl = new NPCcontroller[mineCount];
@@ -575,16 +590,16 @@ public class MyGame extends BaseGame{
 		Vector3D avLoc = player.model.getLocalTranslation().getCol(3);
 		
 		
-		if (Math.abs(npcP.getX() - avLoc.getX()) <= 2
-			&& Math.abs(npcP.getZ() - avLoc.getZ()) <= 2)
+		if (Math.abs(npcP.getX() - avLoc.getX()) <= mineDistance
+			&& Math.abs(npcP.getZ() - avLoc.getZ()) <= mineDistance)
 		{
 			isNear = true;
 		}
 		
 		if(thisClient != null && thisClient.entity != null){
 			Vector3D ghostLoc = thisClient.entity.model.getLocalTranslation().getCol(3);
-			if (Math.abs(npcP.getX() - ghostLoc.getX()) <= 2
-					&& Math.abs(npcP.getZ() - ghostLoc.getZ()) <= 2)
+			if (Math.abs(npcP.getX() - ghostLoc.getX()) <= mineDistance
+					&& Math.abs(npcP.getZ() - ghostLoc.getZ()) <= mineDistance)
 			{
 				isNear = true;
 			}

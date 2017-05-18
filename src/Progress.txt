@@ -40,7 +40,7 @@ External Models:
 Networked Multi-Player:
 	Met, 2-players.
 Scripting:
-	Partially Met, have script, should probably change to do something more important.
+	Met, script controls mine number, starting player locations, and mine trigger distance.
 Skybox and Terrain:
 	Met.
 Events:
@@ -48,15 +48,15 @@ Events:
 3D Sound:
 	Not Met, need Austin to add.
 HUD:
-	Met, however should probably change to display something more important.
+	Met, displays number of mines.
 Hierarchical SceneGraph:
-	Not Met, change mines to be made of more than 1 primitive.
+	Partially Met, mines are Group>NPC(group)>mineModel(SceneNode). Meets requirements, but could be updated to have group have more than 1 object in it.
 Animation:
 	Not Met, need Austin to add.
 NPCs:
-	Partially Met, need to make many NPCs instead of just one.
+	Met, game runs fine till around 300 mines.
 Physics:
-	Met, however might want to make it something more impactful, but probably not.
+	Met, drops crashPod on the other player's location.
 	
 Additional Notes:
 	FSEM mode works, but Windowed mode doesn't.
@@ -72,10 +72,15 @@ Need to have proper package structure (move game-specific code (model loading) o
 Stuff Oleksandr needs to do:
 
 Move players + NPCs to middle of terrain instead of edge.
+	Done: Players are at fixed points, mines are randomly aranged.
 Either make a sphere object, or add a texture to the Sphere, so that it isn't a wireframe.
-Add physics object that actually relates to gameplay. (Sphere 'Crashlanding on the )
+	Not doing: Mines represent mine detection radius, so fine that they are wireframes.
+Add physics object that actually relates to gameplay.
+	Done: Cylinder that represents a crash landing pod falls on other player.
 Get rotation from transform, send it via network, then apply to ghostavatar.
+	
 Optional: Update script to make mine locations customizable.
 Not Met, change mines to be made of more than 1 primitive.
+	Partially Done: They are hierarchical, but not yet made of multiple primitives.
 Fix FSEM
 Change package name & window title.
