@@ -23,7 +23,7 @@ public class MoveLeft extends AbstractInputAction {
 	@Override
 	public void performAction(float time, Event event) {
 		Matrix3D rot = avatar.getLocalRotation();
-		Vector3D dir = new Vector3D(1, 0, 0);
+		Vector3D dir = new Vector3D(-1, 0, 0);
 		dir = dir.mult(rot);
 		dir.scale((double) (speed * time));
 		avatar.translate((float) dir.getX(), (float) dir.getY(), (float) dir.getZ());

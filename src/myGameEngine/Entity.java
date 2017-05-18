@@ -30,7 +30,7 @@ public class Entity{
 		if(avatarType == 'r'){
 			model = loader.loadModel("./images/robot.obj");
 			modelTexture = TextureManager.loadTexture2D("./images/robotTexture.png");
-			model.rotate(180, new Vector3D(0, 1, 0));
+			//model.rotate(90, new Vector3D(0,1,0));
 		}
 		
 		model.updateLocalBound();

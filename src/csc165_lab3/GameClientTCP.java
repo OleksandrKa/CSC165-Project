@@ -124,19 +124,37 @@ public class GameClientTCP extends GameConnectionClient{
 	}
 	
 	private void createGhostAvatar(UUID remID, Vector3D pos, char remoteAvatar){
-		Entity avatar = new Entity(remID, pos, remoteAvatar, game.display);
-		entity = avatar;
-		game.addGameWorldObject(avatar.model);
+		this.entity = new Entity(remID, pos, remoteAvatar, game.display);
+		System.out.print("Add entity\n\n");
+		game.addGameWorldObject(this.entity.model);
 	}
 	private void removeGhostAvatar(UUID remID){
-		if(entity.id == remID){
-			game.removeGameWorldObject(entity.model);
-			entity = null;
-		}
+		//if(this.entity.id == remID){
+			game.removeGameWorldObject(this.entity.model);
+			System.out.print("StringStringString\n\n\n\n\n");
+			this.entity = null;
+		//}
 	}
 	private void moveGhostAvatar(UUID remID, Vector3D ghostPos){
-		if(entity.id == remID){
-			entity.updatePosition(ghostPos);
+		/*if(entity == null){
+			System.out.print("null entity");
+		}
+		if(entity.id == null)
+		{
+			System.out.print("null id");
+		}
+		if(remID == null){
+			System.out.print("null remID");
+		}*/
+		if(this.entity != null){
+			System.out.print("not null entity");
+			//if(this.entity.id == remID){
+				System.out.print("updatePos");
+				this.entity.updatePosition(ghostPos);
+			//}
+		}
+		else{
+			System.out.print("null entity");
 		}
 	}
 }

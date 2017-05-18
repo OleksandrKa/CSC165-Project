@@ -28,11 +28,11 @@ import myGameEngine.MoveRight;
 import myGameEngine.MoveXAxis;
 import myGameEngine.MoveZAxis;
 import myGameEngine.MyDisplaySystem;
-import myGameEngine.OrbitCameraController;
 import myGameEngine.QuitGameAction;
 import sage.app.BaseGame;
 import sage.camera.ICamera;
 import sage.camera.JOGLCamera;
+import sage.camera.controllers.ThirdPersonOrbitCameraController;
 import sage.display.DisplaySettingsDialog;
 import sage.display.IDisplaySystem;
 import sage.event.EventManager;
@@ -63,7 +63,6 @@ import sage.texture.Texture;
 import sage.texture.TextureManager;
 
 public class MyGame extends BaseGame{
-	boolean testOnSingleComputerFlag = true;
 	
 	GameClientTCP thisClient;
 	
@@ -96,7 +95,7 @@ public class MyGame extends BaseGame{
 	private int mineCount;
 	private Point3D[] mineLoc;
 	
-	private OrbitCameraController playerCam;
+	private ThirdPersonOrbitCameraController playerCam;
 	private HUDString timeString;
 	private SkyBox skybox;
 	//temp:
@@ -152,9 +151,8 @@ public class MyGame extends BaseGame{
 		Point3D camLoc = camera.getLocation();
 		Matrix3D camTranslation = new Matrix3D();
 		camTranslation.translate(camLoc.getX(), camLoc.getY(), camLoc.getZ());
-		if(testOnSingleComputerFlag == false)
-			skybox.setLocalTranslation(camTranslation);
-		//#endif
+		skybox.setLocalTranslation(camTranslation);
+		
 		
 		time += elapsedTimeMS;
 		DecimalFormat df = new DecimalFormat("0.0");
@@ -163,7 +161,9 @@ public class MyGame extends BaseGame{
 		
 		if(thisClient != null){
 			thisClient.processPackets();
+			System.out.print("test\n");
 			thisClient.sendMoveMessage(player.model.getLocalTranslation().getCol(3));
+			System.out.print("afterTest\n");
 		}
 		
 		
@@ -217,9 +217,10 @@ public class MyGame extends BaseGame{
 		
 		//String gpName = im.getFirstGamepadName();
 		String kbName = im.getKeyboardName();
+		String msName = im.getMouseName();
 
-		playerCam = new OrbitCameraController(camera, player.model, im, kbName);
-		
+		playerCam = new ThirdPersonOrbitCameraController(camera, player.model, im, msName);
+		playerCam.enableSnapback();
 
 		// Gamepad Bindings
 		IAction mvXAxis = new MoveXAxis(player.model, speed);
@@ -262,8 +263,9 @@ public class MyGame extends BaseGame{
 			player.model.rotate(90, new Vector3D(0, 1, 0));
 		}
 		if(playerAvatar == 'r'){
-			player.model.rotate(180, new Vector3D(0, 1, 0));
+			player.model.rotate(90, new Vector3D(0, 1, 0));
 		}
+		player.model.translate(10,0,10);
 		addGameWorldObject(player.model);
 		
 		camera = new JOGLCamera(renderer);
@@ -293,7 +295,7 @@ public class MyGame extends BaseGame{
 	
 	private void initGameObjects(){
 		//#ifndef TESTONSINGLECOMPUTER
-		if(testOnSingleComputerFlag == false){
+		
 		// construct a skybox for the scene
 		skybox = new SkyBox("SkyBox", 20.0f, 20.0f, 20.0f);
 		// load skybox textures
@@ -313,7 +315,7 @@ public class MyGame extends BaseGame{
 		skybox.setTexture(SkyBox.Face.Up, topTex);
 		skybox.setTexture(SkyBox.Face.Down, bottomTex);
 		addGameWorldObject(skybox);
-		}//#endif
+		
 		
 		
 		this.executeScript(jsEngine, scriptFileName);
