@@ -18,20 +18,24 @@ DONE: Go over Movement classes and make sure they actually go in the correct dir
 
 Make sure to add an event and event listener to the game.
 
-Move players + NPCs to middle of terrain instead of edge.
+DONE: Move players + NPCs to middle of terrain instead of edge.
 
-Either make a sphere object, or add a texture to the Sphere, so that it isn't a wireframe.
+DONE: Either make a sphere object, or add a texture to the Sphere, so that it isn't a wireframe.
 
-Add physics object that actually relates to gameplay. (Sphere 'Crashlanding on the )
+DONE: Add physics object that actually relates to gameplay. (Sphere 'Crashlanding on the )
 
 Done: Make many NPCs, not just one.
 
 Done: Resize physics object when resizing npc. 
 		Problem: can't do this, so remove physics from npcs.
 
-Get rotation from transform, send it via network, then apply to ghostavatar.
+DONE: Get rotation from transform, send it via network, then apply to ghostavatar.
 
 Optional: Update script to make mine locations customizable.
+
+Add Sound
+
+Add Animation
 
 
 Requirements:
@@ -78,8 +82,9 @@ Either make a sphere object, or add a texture to the Sphere, so that it isn't a 
 Add physics object that actually relates to gameplay.
 	Done: Cylinder that represents a crash landing pod falls on other player.
 Get rotation from transform, send it via network, then apply to ghostavatar.
-	
+	Done: Haven't tested via network yet, but applying it to the local avatar works 100%.
 Optional: Update script to make mine locations customizable.
+	Done.
 Not Met, change mines to be made of more than 1 primitive.
 	Partially Done: They are hierarchical, but not yet made of multiple primitives.
 Fix FSEM
