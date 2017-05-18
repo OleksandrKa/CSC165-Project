@@ -169,7 +169,6 @@ public class MyGame extends BaseGame{
 			double cosOfDegrees = degVec.getZ();
 			int deg = (int) Math.round(Math.toDegrees((Math.atan2(sinOfDegrees,cosOfDegrees))));
 			thisClient.sendMoveMessage(pos, deg);
-			System.out.println(deg);
 		}
 		/*//Test if calculated correctly.
 		Vector3D pos = player.model.getLocalTranslation().getCol(3);
@@ -230,45 +229,51 @@ public class MyGame extends BaseGame{
 		im = getInputManager();
 		eventMg = EventManager.getInstance();
 		
-		//String gpName = im.getFirstGamepadName();
-		//String kbName = im.getKeyboardName();
+		String gpName = im.getFirstGamepadName();
+		String kbName = im.getKeyboardName();
 		String msName = im.getMouseName();
-
-		playerCam = new ThirdPersonOrbitCameraController(camera, player.model, im, msName);
-		playerCam.enableSnapback();
 		
-		//playerCam = new OrbitCameraController(camera, player.model, im, kbName);
-
-		// Gamepad Bindings
-		IAction mvXAxis = new MoveXAxis(player.model, speed);
-		IAction mvZAxis = new MoveZAxis(player.model, speed);
-
-		/* im.associateAction(gpName, net.java.games.input.Component.Identifier.Axis.X, mvXAxis,
-				IInputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
-		im.associateAction(gpName, net.java.games.input.Component.Identifier.Axis.Y, mvZAxis,
-				IInputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN); */
-
-		// Keyboard Bindings
 		QuitGameAction escQuit = new QuitGameAction(this);
 		IAction mvForward = new MoveForward(player.model, speed, hillTerrain);
 		IAction mvBack = new MoveBack(player.model, speed, hillTerrain);
 		IAction mvRight = new MoveRight(player.model, speed, hillTerrain);
 		IAction mvLeft = new MoveLeft(player.model, speed, hillTerrain);
 		
-		im.associateAction(msName, net.java.games.input.Component.Identifier.Button.MIDDLE, mvForward,
-				IInputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
-/*
-		im.associateAction(kbName, net.java.games.input.Component.Identifier.Key.D, mvForward,
-				IInputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
-		im.associateAction(kbName, net.java.games.input.Component.Identifier.Key.A, mvBack,
-				IInputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
-		im.associateAction(kbName, net.java.games.input.Component.Identifier.Key.S, mvRight,
-				IInputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
-		im.associateAction(kbName, net.java.games.input.Component.Identifier.Key.W, mvLeft,
-				IInputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
-		im.associateAction(kbName, net.java.games.input.Component.Identifier.Key.ESCAPE, escQuit,
-				IInputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
-*/
+		IAction mvXAxis = new MoveXAxis(player.model, speed);
+		IAction mvZAxis = new MoveZAxis(player.model, speed);
+
+		if(gpName == null){
+			//Mouse Bindings
+			playerCam = new ThirdPersonOrbitCameraController(camera, player.model, im, msName);
+			playerCam.enableSnapback();
+			im.associateAction(msName, net.java.games.input.Component.Identifier.Button.MIDDLE, mvForward,
+					IInputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+		}
+		else{
+
+			// Gamepad Bindings
+			playerCam = new ThirdPersonOrbitCameraController(camera, player.model, im, gpName);
+			playerCam.enableSnapback();
+			im.associateAction(gpName, net.java.games.input.Component.Identifier.Axis.X, mvXAxis,
+					IInputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+			im.associateAction(gpName, net.java.games.input.Component.Identifier.Axis.Y, mvZAxis,
+					IInputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+		}
+		
+		if(kbName != null){
+			
+			im.associateAction(kbName, net.java.games.input.Component.Identifier.Key.D, mvForward,
+					IInputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+			im.associateAction(kbName, net.java.games.input.Component.Identifier.Key.A, mvBack,
+					IInputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+			im.associateAction(kbName, net.java.games.input.Component.Identifier.Key.S, mvRight,
+					IInputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+			im.associateAction(kbName, net.java.games.input.Component.Identifier.Key.W, mvLeft,
+					IInputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+			im.associateAction(kbName, net.java.games.input.Component.Identifier.Key.ESCAPE, escQuit,
+					IInputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+		}
+		
 		// List out controllers
 		//f = new FindComponents();
 		//f.listControllers();
