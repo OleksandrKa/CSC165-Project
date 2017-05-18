@@ -100,7 +100,6 @@ public class MyGame extends BaseGame {
 	private int mineDistance;
 
 	private ThirdPersonOrbitCameraController playerCam;
-	//private OrbitCameraController playerCam;
 	private HUDString timeString;
 	private SkyBox skybox;
 	//temp:
@@ -170,9 +169,28 @@ public class MyGame extends BaseGame {
 
 		if (thisClient != null) {
 			thisClient.processPackets();
-			thisClient.sendMoveMessage(player.model.getLocalTranslation().getCol(3));
+			Vector3D pos = player.model.getLocalTranslation().getCol(3);
+			Vector3D degVec = player.model.getLocalRotation().getCol(2);
+			double sinOfDegrees = degVec.getX();
+			double cosOfDegrees = degVec.getZ();
+			int deg = (int) Math.round(Math.toDegrees((Math.atan2(sinOfDegrees,cosOfDegrees))));
+			thisClient.sendMoveMessage(pos, deg);
 		}
+<<<<<<< HEAD
 
+=======
+		/*//Test if calculated correctly.
+		Vector3D pos = player.model.getLocalTranslation().getCol(3);
+		Vector3D degVec = player.model.getLocalRotation().getCol(2);
+		double sinOfDegrees = degVec.getX();
+		double cosOfDegrees = degVec.getZ();
+		int deg = (int) Math.round(Math.toDegrees((Math.atan2(sinOfDegrees,cosOfDegrees))));
+		player.updatePosition(pos, deg);
+		System.out.println(deg);
+		*///
+		
+		
+>>>>>>> 8adb39eb46ef8fb58d0790c5fb4d9c464ae3c8ac
 		//Physics Processing.
 		Matrix3D mat;
 		physicsEngine.update(20.0f);
@@ -237,6 +255,7 @@ public class MyGame extends BaseGame {
 	private void initActions() {
 		im = getInputManager();
 		eventMg = EventManager.getInstance();
+<<<<<<< HEAD
 
 		//String gpName = im.getFirstGamepadName();
 		//String kbName = im.getKeyboardName();
@@ -257,11 +276,19 @@ public class MyGame extends BaseGame {
 				IInputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN); */
 
 		// Keyboard Bindings
+=======
+		
+		String gpName = im.getFirstGamepadName();
+		String kbName = im.getKeyboardName();
+		String msName = im.getMouseName();
+		
+>>>>>>> 8adb39eb46ef8fb58d0790c5fb4d9c464ae3c8ac
 		QuitGameAction escQuit = new QuitGameAction(this);
 		IAction mvForward = new MoveForward(player.model, speed, hillTerrain);
 		IAction mvBack = new MoveBack(player.model, speed, hillTerrain);
 		IAction mvRight = new MoveRight(player.model, speed, hillTerrain);
 		IAction mvLeft = new MoveLeft(player.model, speed, hillTerrain);
+<<<<<<< HEAD
 
 		im.associateAction(msName, net.java.games.input.Component.Identifier.Button.MIDDLE, mvForward,
 				IInputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
@@ -277,6 +304,44 @@ public class MyGame extends BaseGame {
 				im.associateAction(kbName, net.java.games.input.Component.Identifier.Key.ESCAPE, escQuit,
 						IInputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
 		*/
+=======
+		
+		IAction mvXAxis = new MoveXAxis(player.model, speed, hillTerrain);
+		IAction mvZAxis = new MoveZAxis(player.model, speed, hillTerrain);
+		
+		if(gpName == null){
+			//Mouse Bindings
+			playerCam = new ThirdPersonOrbitCameraController(camera, player.model, im, msName);
+			playerCam.enableSnapback();
+			im.associateAction(msName, net.java.games.input.Component.Identifier.Button.MIDDLE, mvForward,
+					IInputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+		}
+		else{
+
+			// Gamepad Bindings
+			playerCam = new ThirdPersonOrbitCameraController(camera, player.model, im, gpName);
+			playerCam.enableSnapback();
+			im.associateAction(gpName, net.java.games.input.Component.Identifier.Axis.X, mvXAxis,
+					IInputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+			im.associateAction(gpName, net.java.games.input.Component.Identifier.Axis.Y, mvZAxis,
+					IInputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+		}
+		
+		if(kbName != null){
+			
+			im.associateAction(kbName, net.java.games.input.Component.Identifier.Key.D, mvForward,
+					IInputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+			im.associateAction(kbName, net.java.games.input.Component.Identifier.Key.A, mvBack,
+					IInputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+			im.associateAction(kbName, net.java.games.input.Component.Identifier.Key.S, mvRight,
+					IInputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+			im.associateAction(kbName, net.java.games.input.Component.Identifier.Key.W, mvLeft,
+					IInputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+			im.associateAction(kbName, net.java.games.input.Component.Identifier.Key.ESCAPE, escQuit,
+					IInputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+		}
+		
+>>>>>>> 8adb39eb46ef8fb58d0790c5fb4d9c464ae3c8ac
 		// List out controllers
 		//f = new FindComponents();
 		//f.listControllers();
@@ -284,15 +349,31 @@ public class MyGame extends BaseGame {
 
 	private void initPlayer() {
 		//TODO: Replace with a local avatar class, add a variable containing the local avatar class to ghostavatar.
+<<<<<<< HEAD
 		player = new Entity(UUID.fromString("00000000-0000-0000-0000-000000000000"), new Vector3D(0, 0, 0),
 				playerAvatar, display);
+=======
+		player = new Entity(UUID.fromString("00000000-0000-0000-0000-000000000000")
+								, new Vector3D(0,0,0), 180, playerAvatar, display);
+>>>>>>> 8adb39eb46ef8fb58d0790c5fb4d9c464ae3c8ac
 		//player.model.translate(0,0,0);
 		if (thisClient.entity == null) {
 			player.model.translate((float) player1Loc.getX(), (float) player1Loc.getY(), (float) player1Loc.getZ());
 		} else {
 			player.model.translate((float) player2Loc.getX(), (float) player2Loc.getY(), (float) player2Loc.getZ());
 		}
+<<<<<<< HEAD
 		player.model.rotate(180, new Vector3D(0, 1, 0));
+=======
+		//Set initial vertical position
+		Point3D avLoc = new Point3D(player.model.getLocalTranslation().getCol(3));
+		float x = (float) avLoc.getX();
+		float z = (float) avLoc.getZ();
+		float terHeight = hillTerrain.getHeight(x, z);
+		float desiredHeight = terHeight + (float) hillTerrain.getOrigin().getY() + 0.1f;
+		hillTerrain.getLocalTranslation().setElementAt(1, 3, desiredHeight);
+		
+>>>>>>> 8adb39eb46ef8fb58d0790c5fb4d9c464ae3c8ac
 		addGameWorldObject(player.model);
 
 		camera = new JOGLCamera(renderer);

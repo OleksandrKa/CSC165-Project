@@ -72,7 +72,8 @@ public class GameClientTCP extends GameConnectionClient{
 			//extract ghost new x,y,z position from message
 			Vector3D ghostPosition = new Vector3D(Double.parseDouble(msgTokens[2]),Double.parseDouble(msgTokens[3]),Double.parseDouble(msgTokens[4]));
 			//then:
-			moveGhostAvatar(ghostID, ghostPosition);
+			int rotateDegrees = Integer.parseInt(msgTokens[5]);
+			moveGhostAvatar(ghostID, ghostPosition, rotateDegrees);
 		}
 	}
 	
@@ -112,19 +113,20 @@ public class GameClientTCP extends GameConnectionClient{
 			sendPacket(message);
 		} catch(IOException e){ e.printStackTrace(); }
 	}
-	public void sendMoveMessage(Vector3D pos){
+	public void sendMoveMessage(Vector3D pos, int rotateDegrees){
 		//format: move, localID, pos
 		try{
 			String message = new String("move," + id.toString());
 			message += "," + pos.getX();
 			message += "," + pos.getY();
 			message += "," + pos.getZ();
+			message += "," + rotateDegrees;
 			sendPacket(message);
 		} catch(IOException e){ e.printStackTrace(); }
 	}
 	
 	private void createGhostAvatar(UUID remID, Vector3D pos, char remoteAvatar){
-		this.entity = new Entity(remID, pos, remoteAvatar, game.display);
+		this.entity = new Entity(remID, pos, 180, remoteAvatar, game.display);
 		game.addGameWorldObject(this.entity.model);
 	}
 	private void removeGhostAvatar(UUID remID){
@@ -133,7 +135,7 @@ public class GameClientTCP extends GameConnectionClient{
 			this.entity = null;
 		//}
 	}
-	private void moveGhostAvatar(UUID remID, Vector3D ghostPos){
+	private void moveGhostAvatar(UUID remID, Vector3D ghostPos, int rotateDegrees){
 		/*if(entity == null){
 			System.out.print("null entity");
 		}
@@ -147,7 +149,7 @@ public class GameClientTCP extends GameConnectionClient{
 		if(this.entity != null){
 			//if(this.entity.id == remID){
 				System.out.print("updatePos");
-				this.entity.updatePosition(ghostPos);
+				this.entity.updatePosition(ghostPos, rotateDegrees);
 			//}
 		}
 	}
