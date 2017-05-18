@@ -10,6 +10,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Random;
 import java.util.Scanner;
 import java.util.UUID;
 
@@ -51,6 +52,7 @@ import sage.scene.Group;
 import sage.scene.HUDString;
 import sage.scene.SceneNode;
 import sage.scene.SkyBox;
+import sage.scene.shape.Cylinder;
 import sage.scene.shape.Line;
 //temp:
 import sage.scene.shape.Sphere;
@@ -84,14 +86,16 @@ public class MyGame extends BaseGame{
 	IRenderer renderer;
 	ICamera camera;
 	IPhysicsEngine physicsEngine;
-	IPhysicsObject ballP, mineP, terrainP;
+	IPhysicsObject crashPodP, terrainP;
 	DisplaySettingsDialog displayDialog;
 	
 	//Game Objects
 	private Entity player;
+	private Point3D player1Loc;
+	private Point3D player2Loc;
 	
 	Group mines;
-	private Sphere[] mine;
+	private NPC[] mine;
 	private int mineCount;
 	private Point3D[] mineLoc;
 	
@@ -100,7 +104,7 @@ public class MyGame extends BaseGame{
 	private HUDString timeString;
 	private SkyBox skybox;
 	//temp:
-	private Sphere ball;
+	private Cylinder crashPod;
 	
 	//Game Data
 	private float speed = 0.02f;
@@ -264,16 +268,16 @@ public class MyGame extends BaseGame{
 								, new Vector3D(0,0,0), playerAvatar, display);
 		//player.model.translate(0,0,0);
 		if(thisClient.entity == null){
-			player.model.translate(250,0,250);
+			player.model.translate((float)player1Loc.getX(),(float)player1Loc.getY(),(float)player1Loc.getZ());
 		}
 		else{
-			player.model.translate(50,0,50);
+			player.model.translate((float)player2Loc.getX(),(float)player2Loc.getY(),(float)player2Loc.getZ());
 		}
 		player.model.rotate(180, new Vector3D(0,1,0));
 		addGameWorldObject(player.model);
 		
 		camera = new JOGLCamera(renderer);
-		//camera.setPerspectiveFrustum(60, 2, 1, 1000);
+		camera.setPerspectiveFrustum(60, 1, 0.01, 10000);
 		//camera.setViewDirection(new Vector3D(-1, 0, 1));
 		//camera.setViewport(0.0, 1.0, 0.0, 0.45);
 		
@@ -332,19 +336,31 @@ public class MyGame extends BaseGame{
 		addGameWorldObject(zAxis);
 		
 		//TODO: Remove demo sphere, add objects for game.
-		ball = new Sphere(1.0,16,16, Color.blue);
-		Matrix3D translateM = new Matrix3D();
-		translateM.translate(5,20,5);
-		ball.setLocalTranslation(translateM);
-		addGameWorldObject(ball);
+		//Valid range for players is 5,0,5 to 285,0,285.
+		player1Loc = new Point3D(50,0,50);
+		player2Loc = new Point3D(240,0,240);
+		crashPod = new Cylinder(2,1,16,16);
+		crashPod.setColor(Color.white);
+		crashPod.setSolid(true);
 		
-		ball.updateGeometricState(1.0f, true);
+		Matrix3D translateM = new Matrix3D();
+		if(thisClient.entity == null){
+			translateM.translate((float)player2Loc.getX(),100f,(float)player2Loc.getZ());
+		}
+		else{
+			translateM.translate((float)player1Loc.getX(),100f,(float)player1Loc.getZ());
+		}
+		crashPod.setLocalTranslation(translateM);
+		
+		addGameWorldObject(crashPod);
+
+		crashPod.updateGeometricState(1.0f, true);
 		
 		float mass = 1.0f;
-		ballP = physicsEngine.addSphereObject(physicsEngine.nextUID(), 
-				mass, ball.getWorldTransform().getValues(), 1.0f);
-		ballP.setBounciness(1.0f);
-		ball.setPhysicsObject(ballP);
+		crashPodP = physicsEngine.addSphereObject(physicsEngine.nextUID(), 
+				mass, crashPod.getWorldTransform().getValues(), 1.0f);
+		crashPodP.setBounciness(1.0f);
+		crashPod.setPhysicsObject(crashPodP);
 	}
 	
 	private void initNPC() {
@@ -366,18 +382,19 @@ public class MyGame extends BaseGame{
 		heroState.setEnabled(true);
 		heroNPC.setRenderState(heroState);*/
 		
-		mineCount = 2;
-		mine = new Sphere[mineCount];
+		mineCount = 100;
+		mine = new NPC[mineCount];
 		mineLoc = new Point3D[mineCount];
 		npcCtrl = new NPCcontroller[mineCount];
 		
-		mineLoc[0] = new Point3D(5,0,5);
-		mineLoc[1] = new Point3D(5,0,8);
-		
 		mines = new Group("root");
+		Random randomGenerator = new Random();
 		
 		for(int i=0; i<mineCount; i++){
-			mine[i] = new Sphere(1.0,16,16, Color.red); 
+			
+			mineLoc[i] = new Point3D(randomGenerator.nextInt(285+1)+5, 0, randomGenerator.nextInt(285+1)+5);
+			
+			mine[i] = new NPC(); 
 			mine[i].translate((float) mineLoc[i].getX(), (float) mineLoc[i].getY(), (float) mineLoc[i].getZ());
 			npcCtrl[i] = new NPCcontroller(this, mine[i]);
 			npcCtrl[i].startNPControl();
@@ -559,7 +576,7 @@ public class MyGame extends BaseGame{
 		
 		
 		if (Math.abs(npcP.getX() - avLoc.getX()) <= 2
-			&& Math.abs(npcP.getY() - avLoc.getY()) <= 2)
+			&& Math.abs(npcP.getZ() - avLoc.getZ()) <= 2)
 		{
 			isNear = true;
 		}
@@ -567,7 +584,7 @@ public class MyGame extends BaseGame{
 		if(thisClient != null && thisClient.entity != null){
 			Vector3D ghostLoc = thisClient.entity.model.getLocalTranslation().getCol(3);
 			if (Math.abs(npcP.getX() - ghostLoc.getX()) <= 2
-					&& Math.abs(npcP.getY() - ghostLoc.getY()) <= 2)
+					&& Math.abs(npcP.getZ() - ghostLoc.getZ()) <= 2)
 			{
 				isNear = true;
 			}

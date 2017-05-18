@@ -1,18 +1,24 @@
 package csc165_lab3;
 
+import graphicslib3D.Matrix3D;
 import sage.ai.behaviortrees.BTAction;
 import sage.ai.behaviortrees.BTStatus;
 import sage.scene.SceneNode;
 
 public class GetSmall extends BTAction{
-	SceneNode npc;
+	NPC npc;
 	
-	public GetSmall(SceneNode n){
+	public GetSmall(NPC n){
 		npc = n;
 	}
 	
 	protected BTStatus update(float elapsedTime){
-		npc.scale(0.9f,0.9f,0.9f);
+		if(npc.npcModel.getLocalScale().getRow(0).getX() <= 0.01){
+			npc.growingOrShrinking = 'n';
+		}
+		else{
+			npc.growingOrShrinking = 's';
+		}
 		return BTStatus.BH_SUCCESS;
 	}
 }

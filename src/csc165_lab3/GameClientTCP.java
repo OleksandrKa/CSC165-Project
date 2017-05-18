@@ -13,7 +13,7 @@ public class GameClientTCP extends GameConnectionClient{
 	private UUID id;
 	private char avatarType;
 	//private Vector<Entity> entities;
-	public Entity entity; //max of 2 players.
+	public Entity entity = null; //max of 2 players.
 	
 	public GameClientTCP(InetAddress remAddr, int remPort, ProtocolType pType, MyGame game) throws IOException{
 		super(remAddr, remPort, pType);

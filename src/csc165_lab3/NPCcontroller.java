@@ -10,12 +10,12 @@ public class NPCcontroller{
 	long currentTime, lastUpdateTime;
 	long lastThinkUpdateTime, lastTickUpdateTime;
 	//NPC npc;
-	SceneNode npc;
+	NPC npc;
 	//GameClientTCP server;
 	MyGame game;
 	boolean nearFlag = false;
 
-	public NPCcontroller(MyGame myGame, SceneNode mine) {
+	public NPCcontroller(MyGame myGame, NPC mine) {
 		game = myGame;
 		npc = mine;
 	}
@@ -39,14 +39,14 @@ public class NPCcontroller{
 			float elapsedTickMilliSecs = (currentTime-lastTickUpdateTime)/(1000000.0f);
 			
 			//TICK
-			if(elapsedTickMilliSecs >= 50.0f){
+			if(elapsedTickMilliSecs >= 100.0f){
 				lastTickUpdateTime = currentTime;
-				//npc.updateLocation();
+				npc.updateSize();
 				//server.sendNPCinfo();
 			}
 			
 			//THINK
-			if(elapsedThinkMilliSecs >= 100.0f){
+			if(elapsedThinkMilliSecs >= 500.0f){
 				lastThinkUpdateTime = currentTime;
 				bt.update(elapsedThinkMilliSecs);
 			}

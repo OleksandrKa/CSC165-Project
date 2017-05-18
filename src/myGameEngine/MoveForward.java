@@ -35,7 +35,7 @@ public class MoveForward extends AbstractInputAction {
 		float x = (float) avLoc.getX();
 		float z = (float) avLoc.getZ();
 		float terHeight = terrain.getHeight(x, z);
-		float desiredHeight = terHeight + (float) terrain.getOrigin().getY() + 0.5f;
+		float desiredHeight = terHeight + (float) terrain.getOrigin().getY() + 0.1f;
 		avatar.getLocalTranslation().setElementAt(1, 3, desiredHeight);
 	}
 }

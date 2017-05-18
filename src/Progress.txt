@@ -68,3 +68,14 @@ Appendix A (Previous Requirements):
 
 Need to do collision using bounding volumes, can't just use physics.
 Need to have proper package structure (move game-specific code (model loading) out of Entities and into GhostAvatars.
+
+Stuff Oleksandr needs to do:
+
+Move players + NPCs to middle of terrain instead of edge.
+Either make a sphere object, or add a texture to the Sphere, so that it isn't a wireframe.
+Add physics object that actually relates to gameplay. (Sphere 'Crashlanding on the )
+Get rotation from transform, send it via network, then apply to ghostavatar.
+Optional: Update script to make mine locations customizable.
+Not Met, change mines to be made of more than 1 primitive.
+Fix FSEM
+Change package name & window title.
