@@ -17,7 +17,7 @@ public class Entity{
 	
 	public TriMesh model;
 	
-	public Entity(UUID remoteID, Vector3D remotePosition, char avatarType, IDisplaySystem display){
+	public Entity(UUID remoteID, Vector3D remotePosition, int rotateDegrees, char avatarType, IDisplaySystem display){
 		id = remoteID;
 		
 		OBJLoader loader = new OBJLoader();
@@ -43,13 +43,16 @@ public class Entity{
 		modelState.setEnabled(true);
 		model.setRenderState(modelState);
 		
-		updatePosition(remotePosition);
+		updatePosition(remotePosition, rotateDegrees);
 	}
 	
-	public void updatePosition(Vector3D ghostPosition){
+	public void updatePosition(Vector3D ghostPosition, int rotateDegrees){
 		Matrix3D translationM = new Matrix3D();
 		translationM.translate(ghostPosition.getX(), ghostPosition.getY(), ghostPosition.getZ());
 		model.setLocalTranslation(translationM);
+		Matrix3D rotationM = new Matrix3D();
+		rotationM.rotate(rotateDegrees, new Vector3D(0,1,0));
+		model.setLocalRotation(rotationM);
 	}
 	
 }

@@ -60,7 +60,10 @@ public class GameServerTCP extends GameConnectionServer<UUID>{
 				//format: move, localID, x,y,z
 				UUID clientID = UUID.fromString(msgTokens[1]);
 				String[] pos = {msgTokens[2],msgTokens[3],msgTokens[4]};
-				sendMoveMessages(clientID, pos);
+				String rotateDegrees = msgTokens[8];
+				//Only need in move message, since rotation is done in absolute degrees,
+				//creating a new transform, not in relative degrees.
+				sendMoveMessages(clientID, pos, rotateDegrees);
 			}
 		}
 	}
@@ -103,13 +106,14 @@ public class GameServerTCP extends GameConnectionServer<UUID>{
 			forwardPacketToAll(message, clientID);
 		} catch(IOException e){ e.printStackTrace(); }
 	}
-	public void sendMoveMessages(UUID clientID, String[] position){
+	public void sendMoveMessages(UUID clientID, String[] position, String rotateDegrees){
 		//format: move, clientID, x,y,z
 		try{
 			String message = new String("move," + clientID.toString());
 			message += "," + position[0];
 			message += "," + position[1];
 			message += "," + position[2];
+			message += "," + rotateDegrees;
 			forwardPacketToAll(message, clientID);
 		} catch(IOException e){ e.printStackTrace(); }
 	}

@@ -163,8 +163,23 @@ public class MyGame extends BaseGame{
 		
 		if(thisClient != null){
 			thisClient.processPackets();
-			thisClient.sendMoveMessage(player.model.getLocalTranslation().getCol(3));
+			Vector3D pos = player.model.getLocalTranslation().getCol(3);
+			Vector3D degVec = player.model.getLocalRotation().getCol(2);
+			double sinOfDegrees = degVec.getX();
+			double cosOfDegrees = degVec.getZ();
+			int deg = (int) Math.round(Math.toDegrees((Math.atan2(sinOfDegrees,cosOfDegrees))));
+			thisClient.sendMoveMessage(pos, deg);
+			System.out.println(deg);
 		}
+		/*//Test if calculated correctly.
+		Vector3D pos = player.model.getLocalTranslation().getCol(3);
+		Vector3D degVec = player.model.getLocalRotation().getCol(2);
+		double sinOfDegrees = degVec.getX();
+		double cosOfDegrees = degVec.getZ();
+		int deg = (int) Math.round(Math.toDegrees((Math.atan2(sinOfDegrees,cosOfDegrees))));
+		player.updatePosition(pos, deg);
+		System.out.println(deg);
+		*///
 		
 		
 		//Physics Processing.
@@ -262,7 +277,7 @@ public class MyGame extends BaseGame{
 	private void initPlayer(){
 		//TODO: Replace with a local avatar class, add a variable containing the local avatar class to ghostavatar.
 		player = new Entity(UUID.fromString("00000000-0000-0000-0000-000000000000")
-								, new Vector3D(0,0,0), playerAvatar, display);
+								, new Vector3D(0,0,0), 180, playerAvatar, display);
 		//player.model.translate(0,0,0);
 		if(thisClient.entity == null){
 			player.model.translate((float)player1Loc.getX(),(float)player1Loc.getY(),(float)player1Loc.getZ());
@@ -270,7 +285,6 @@ public class MyGame extends BaseGame{
 		else{
 			player.model.translate((float)player2Loc.getX(),(float)player2Loc.getY(),(float)player2Loc.getZ());
 		}
-		player.model.rotate(180, new Vector3D(0,1,0));
 		addGameWorldObject(player.model);
 		
 		camera = new JOGLCamera(renderer);
