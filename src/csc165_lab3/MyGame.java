@@ -107,6 +107,7 @@ public class MyGame extends BaseGame{
 	private float time = 0;
 	boolean isConnected = false;
 	boolean running;
+	char hostingStatus;
 
 	//Terrain
 	private TerrainBlock hillTerrain;
@@ -114,13 +115,13 @@ public class MyGame extends BaseGame{
 	//NPC
 	private NPCcontroller[] npcCtrl;
 
-	public MyGame(String serverAddr, int sPort){
+	public MyGame(String serverAddr, int sPort, char host){
 		super();
 		this.serverAddress = serverAddr;
 		this.serverPort = sPort;
 		this.serverProtocol = ProtocolType.TCP;
 		this.playerAvatar = selectAvatar();
-		
+		this.hostingStatus = host;
 	}
 	
 	public void initGame(){
@@ -283,7 +284,7 @@ public class MyGame extends BaseGame{
 		player = new Entity(UUID.fromString("00000000-0000-0000-0000-000000000000")
 								, new Vector3D(0,0,0), 180, playerAvatar, display);
 		//player.model.translate(0,0,0);
-		if(thisClient.entity == null){
+		if(hostingStatus == 'h'){
 			player.model.translate((float)player1Loc.getX(),(float)player1Loc.getY(),(float)player1Loc.getZ());
 		}
 		else{
@@ -295,7 +296,7 @@ public class MyGame extends BaseGame{
 		float z = (float) avLoc.getZ();
 		float terHeight = hillTerrain.getHeight(x, z);
 		float desiredHeight = terHeight + (float) hillTerrain.getOrigin().getY() + 0.1f;
-		hillTerrain.getLocalTranslation().setElementAt(1, 3, desiredHeight);
+		player.model.getLocalTranslation().setElementAt(1, 3, desiredHeight);
 		
 		addGameWorldObject(player.model);
 		
@@ -376,6 +377,8 @@ public class MyGame extends BaseGame{
 
 		this.executeScript(jsEngine, scriptFileName);
 		
+		mineCount = (int) jsEngine.get("mineCount");
+		mineDistance = (int) jsEngine.get("mineDistance");
 		
 		player1Loc = (Point3D) jsEngine.get("player1Loc");
 		player2Loc = (Point3D) jsEngine.get("player2Loc");
@@ -384,11 +387,11 @@ public class MyGame extends BaseGame{
 		crashPod.setSolid(true);
 		
 		Matrix3D translateM = new Matrix3D();
-		if(thisClient.entity == null){
-			translateM.translate((float)player2Loc.getX(),100f,(float)player2Loc.getZ());
+		if(hostingStatus == 'h'){
+			translateM.translate((float)player2Loc.getX(),25f,(float)player2Loc.getZ());
 		}
 		else{
-			translateM.translate((float)player1Loc.getX(),100f,(float)player1Loc.getZ());
+			translateM.translate((float)player1Loc.getX(),25f,(float)player1Loc.getZ());
 		}
 		crashPod.setLocalTranslation(translateM);
 		
@@ -422,8 +425,6 @@ public class MyGame extends BaseGame{
 		heroState.setEnabled(true);
 		heroNPC.setRenderState(heroState);*/
 		
-		mineCount = (int) jsEngine.get("mineCount");
-		mineDistance = (int) jsEngine.get("mineDistance");
 		mine = new NPC[mineCount];
 		mineLoc = new Point3D[mineCount];
 		npcCtrl = new NPCcontroller[mineCount];

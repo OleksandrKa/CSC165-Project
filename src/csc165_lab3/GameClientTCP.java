@@ -148,7 +148,6 @@ public class GameClientTCP extends GameConnectionClient{
 		}*/
 		if(this.entity != null){
 			//if(this.entity.id == remID){
-				System.out.print("updatePos");
 				this.entity.updatePosition(ghostPos, rotateDegrees);
 			//}
 		}

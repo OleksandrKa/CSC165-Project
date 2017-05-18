@@ -60,7 +60,7 @@ public class Starter{
 		} catch (UnknownHostException e) {
 			e.printStackTrace();
 		}
-		new MyGame(msgTokens[1], port).start();
+		new MyGame(msgTokens[1], port, 'h').start();
 	}
 	
 	public static void joinServer(){
@@ -71,6 +71,6 @@ public class Starter{
 		System.out.print("Enter server port: ");
 		int port = s.nextInt();
 		
-		new MyGame(ip, port).start();
+		new MyGame(ip, port, 'j').start();
 	}
 }
