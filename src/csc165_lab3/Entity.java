@@ -33,6 +33,7 @@ public class Entity{
 		}
 		
 		model.updateLocalBound();
+		model.updateWorldBound();
 		
 		//Apply Texture
 		TextureState modelState;
