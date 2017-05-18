@@ -8,24 +8,28 @@ DONE: Replace NPC with ball mine.
 
 DONE: Make AI react to ghost avatar as well
 
-Replace custom OrbitCameraController with built in camera controller.
+DONE: Replace custom OrbitCameraController with built in camera controller.
 
 DONE: Create model/(optional animation) in blendr and add it to game.
 
 DONE: Add entity class to store model in it.
 
-Go over Movement classes and make sure they actually go in the correct direction.
+DONE: Go over Movement classes and make sure they actually go in the correct direction.
 
 Make sure to add an event and event listener to the game.
 
 Move players + NPCs to middle of terrain instead of edge.
+
+Either make a sphere object, or add a texture to the Sphere, so that it isn't a wireframe.
+
+Add physics object that actually relates to gameplay. (Sphere 'Crashlanding on the )
 
 Done: Make many NPCs, not just one.
 
 Done: Resize physics object when resizing npc. 
 		Problem: can't do this, so remove physics from npcs.
 
-
+Get rotation from transform, send it via network, then apply to ghostavatar.
 
 Optional: Update script to make mine locations customizable.
 
@@ -40,7 +44,7 @@ Scripting:
 Skybox and Terrain:
 	Met.
 Events:
-	Not Met, need to assign collision events between local player and npc, and between local player and ghost.
+	Not Met, need to assign collision events between local player and npc, and between local player and ghost, and ghost and npc.
 3D Sound:
 	Not Met, need Austin to add.
 HUD:
