@@ -221,6 +221,9 @@ public class MyGame extends BaseGame {
 					PlayerMineEvent collisionEvent = new PlayerMineEvent(s, sounds);
 					eventMgr.triggerEvent(collisionEvent);
 					//explosionSound.play(100, false);
+			    	System.out.println(this.removeGameWorldObject(s));
+			    	mines.removeChild(s);
+			    	break;
 				}
 			}
 		}

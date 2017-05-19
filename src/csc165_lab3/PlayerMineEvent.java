@@ -33,9 +33,11 @@ public class PlayerMineEvent extends AbstractGameEvent {
         */
         if (getEntityType() == "mine") {
             sounds.get(2).play();
+            System.out.print("Boom");
         }
         if (getEntityType() == "player") {
             sounds.get(3).play();
+            System.out.print("Hooray");
         }
     }
 }
