@@ -18,6 +18,8 @@ import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 
+import org.omg.CORBA.ARG_IN;
+
 import graphicslib3D.Matrix3D;
 import graphicslib3D.Point3D;
 import graphicslib3D.Vector3D;
@@ -29,14 +31,14 @@ import myGameEngine.MoveXAxis;
 import myGameEngine.MoveZAxis;
 import myGameEngine.MyDisplaySystem;
 import myGameEngine.QuitGameAction;
+import net.java.games.input.Component.Identifier.Axis;
 import sage.app.BaseGame;
 import sage.camera.ICamera;
 import sage.camera.JOGLCamera;
 import sage.camera.controllers.ThirdPersonOrbitCameraController;
 import sage.display.DisplaySettingsDialog;
 import sage.display.IDisplaySystem;
-import sage.event.EventManager;
-import sage.event.IEventManager;
+import sage.event.*;
 import sage.input.IInputManager;
 import sage.input.InputManager;
 import sage.input.action.IAction;
@@ -81,7 +83,7 @@ public class MyGame extends BaseGame {
 	//Interfaces
 	IDisplaySystem display;
 	IInputManager im;
-	IEventManager eventMg;
+	IEventManager eventMgr;
 	IRenderer renderer;
 	ICamera camera;
 	IPhysicsEngine physicsEngine;
@@ -120,7 +122,11 @@ public class MyGame extends BaseGame {
 
 	//Sound
 	IAudioManager audioMgr;
-	Sound bgSound, npcSound, beepSound, explosionSound;
+	Sound bgSound, npcSound, beepSound, explosionSound, victorySound;
+	private ArrayList<Sound> sounds; // contains all sounds, used to pass into EventHandler
+
+	//Events
+	PlayerMineEvent collisionEvent;
 
 	public MyGame(String serverAddr, int sPort, char host) {
 		super();
@@ -153,6 +159,7 @@ public class MyGame extends BaseGame {
 		//create an Input Manager
 		IInputManager inputManager = new InputManager();
 		setInputManager(inputManager);
+		eventMgr = EventManager.getInstance();
 		//create an (empty) gameworld
 		ArrayList<SceneNode> gameWorld = new ArrayList<SceneNode>();
 		setGameWorld(gameWorld);
@@ -211,11 +218,19 @@ public class MyGame extends BaseGame {
 		for (SceneNode s : mines) {
 			if (s != null) {
 				if (player.model.getWorldBound().intersects(s.getWorldBound())) {
-					System.out.println("BOOM");
-					explosionSound.play(100, false);
+					PlayerMineEvent collisionEvent = new PlayerMineEvent(s, sounds);
+					eventMgr.triggerEvent(collisionEvent);
+					//explosionSound.play(100, false);
 				}
 			}
 		}
+
+		if (thisClient.entity != null)
+			if (player.model.getWorldBound().intersects(thisClient.entity.model.getWorldBound())) {
+				player.model.translate(0, 1, 0);
+				PlayerMineEvent collisionEvent = new PlayerMineEvent(player.model, sounds);
+				eventMgr.triggerEvent(collisionEvent);
+			}
 
 		// tell BaseGame to update game world state
 		super.update(elapsedTimeMS);
@@ -252,7 +267,6 @@ public class MyGame extends BaseGame {
 
 	private void initActions() {
 		im = getInputManager();
-		eventMg = EventManager.getInstance();
 		
 		String gpName = im.getFirstGamepadName();
 		String kbName = im.getKeyboardName();
@@ -466,7 +480,9 @@ public class MyGame extends BaseGame {
 
 			mine[i].updateLocalBound();
 			mine[i].updateWorldBound();
+			mine[i].setName("mine " + i);
 
+			eventMgr.addListener(mine[i], PlayerMineEvent.class);
 			mines.addChild(mine[i]);
 		}
 
@@ -541,7 +557,8 @@ public class MyGame extends BaseGame {
 	}
 
 	private void initAudio() {
-		AudioResource resource1, resource2, resource3;
+		AudioResource resource1, resource2, resource3, resource4;
+		sounds = new ArrayList<Sound>();
 		audioMgr = AudioManagerFactory.createAudioManager("sage.audio.joal.JOALAudioManager");
 		if (!audioMgr.initialize()) {
 			System.out.println("Audio Manager failed to initialize!");
@@ -550,14 +567,26 @@ public class MyGame extends BaseGame {
 		resource1 = audioMgr.createAudioResource("./sounds/beep.wav", AudioResourceType.AUDIO_SAMPLE);
 		resource2 = audioMgr.createAudioResource("./sounds/FamiliarRoads.wav", AudioResourceType.AUDIO_STREAM);
 		resource3 = audioMgr.createAudioResource("./sounds/explosion.wav", AudioResourceType.AUDIO_SAMPLE);
+		resource4 = audioMgr.createAudioResource("./sounds/victory.wav", AudioResourceType.AUDIO_SAMPLE);
 		//npcSound = new Sound(resource1, SoundType.SOUND_EFFECT, 100, true);
+		
+		// Attach Sounds to In-Game Variables
 		beepSound = new Sound(resource1, SoundType.SOUND_EFFECT, 100, true);
-		explosionSound = new Sound(resource1, SoundType.SOUND_EFFECT, 100, true);
 		bgSound = new Sound(resource2, SoundType.SOUND_EFFECT, 60, true);
+		explosionSound = new Sound(resource3, SoundType.SOUND_EFFECT, 100, true);
+		victorySound = new Sound(resource4, SoundType.SOUND_EFFECT, 100, true);
+
+		// Add sounds to array
+		sounds.add(beepSound);
+		sounds.add(bgSound);
+		sounds.add(explosionSound);
+		sounds.add(victorySound);
+
 		//npcSound.initialize(audioMgr);
 		beepSound.initialize(audioMgr);
 		explosionSound.initialize(audioMgr);
 		bgSound.initialize(audioMgr);
+		victorySound.initialize(audioMgr);
 		//npcSound.setMaxDistance(4.0f);
 		//npcSound.setMinDistance(1.0f);
 		//npcSound.setRollOff(5.0f);
@@ -570,6 +599,11 @@ public class MyGame extends BaseGame {
 		bgSound.setMaxDistance(50.0f);
 		bgSound.setMinDistance(3.0f);
 		bgSound.setRollOff(5.0f);
+
+		victorySound.setLocation(new Point3D(0, 0, 0));
+		victorySound.setMaxDistance(50.0f);
+		victorySound.setMinDistance(3.0f);
+		victorySound.setRollOff(5.0f);
 		//npcSound.setLocation(new Point3D(5,0,5));
 		setEarParameters();
 		//npcSound.play();

@@ -6,8 +6,9 @@ import java.awt.Color;
 import sage.scene.Group;
 import sage.scene.SceneNode;
 import sage.scene.shape.Sphere;
+import sage.event.*;
 
-public class NPC extends Group{
+public class NPC extends Group implements IEventListener {
 	SceneNode npcModel;
 	public char growingOrShrinking = 'n';
 	
@@ -23,5 +24,11 @@ public class NPC extends Group{
 			this.scale(1.1f,1.1f,1.1f);
 		if(growingOrShrinking == 's')
 			this.scale(0.9f,0.9f,0.9f);
+	}
+
+	public boolean handleEvent(IGameEvent event) {
+		PlayerMineEvent c = (PlayerMineEvent) event;
+        c.playSound();
+        return true;
 	}
 }

@@ -26,6 +26,7 @@ public class Entity{
 		if(avatarType == 'h'){
 			model = loader.loadModel("./images/hero.obj");
 			modelTexture = TextureManager.loadTexture2D("./images/heroTexture.png");
+			model.rotate(90, new Vector3D(0, 1, 0));
 		}
 		if(avatarType == 'r'){
 			model = loader.loadModel("./images/robot.obj");
@@ -34,6 +35,7 @@ public class Entity{
 		
 		model.updateLocalBound();
 		model.updateWorldBound();
+		model.setName("player " + id);
 		
 		//Apply Texture
 		TextureState modelState;
