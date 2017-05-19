@@ -6,11 +6,11 @@ import sage.event.*;
 import sage.scene.SceneNode;
 import sage.audio.*;
 
-public class PlayerMineEvent extends AbstractGameEvent {
+public class CollisionEvent extends AbstractGameEvent {
     private SceneNode node;
     private ArrayList<Sound> sounds;
 
-    public PlayerMineEvent(SceneNode n, ArrayList<Sound> s) {
+    public CollisionEvent(SceneNode n, ArrayList<Sound> s) {
         node = n;
         sounds = s;
     }
@@ -32,8 +32,8 @@ public class PlayerMineEvent extends AbstractGameEvent {
         3 - victory
         */
         if (getEntityType() == "mine") {
+            System.out.print("Mine tripped!");
             sounds.get(2).play();
-            System.out.print("Boom");
         }
         if (getEntityType() == "player") {
             sounds.get(3).play();

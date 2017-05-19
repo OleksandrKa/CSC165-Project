@@ -127,7 +127,7 @@ public class MyGame extends BaseGame {
 	private ArrayList<Sound> sounds; // contains all sounds, used to pass into EventHandler
 
 	//Events
-	PlayerMineEvent collisionEvent;
+	CollisionEvent collisionEvent;
 
 	public MyGame(String serverAddr, int sPort, char host) {
 		super();
@@ -221,7 +221,7 @@ public class MyGame extends BaseGame {
 		for (SceneNode s : mines) {
 			if (s != null) {
 				if (player.model.getWorldBound().intersects(s.getWorldBound())) {
-					PlayerMineEvent collisionEvent = new PlayerMineEvent(s, sounds);
+					CollisionEvent collisionEvent = new CollisionEvent(s, sounds);
 					eventMgr.triggerEvent(collisionEvent);
 					
 					//explosionSound.play(100, false);
@@ -245,7 +245,7 @@ public class MyGame extends BaseGame {
 		if (thisClient.entity != null)
 			if (player.model.getWorldBound().intersects(thisClient.entity.model.getWorldBound())) {
 				player.model.translate(0, 1, 0);
-				PlayerMineEvent collisionEvent = new PlayerMineEvent(player.model, sounds);
+				CollisionEvent collisionEvent = new CollisionEvent(player.model, sounds);
 				eventMgr.triggerEvent(collisionEvent);
 				
 				//Game End Code
@@ -511,7 +511,7 @@ public class MyGame extends BaseGame {
 			mine[i].updateWorldBound();
 			mine[i].setName("mine " + i);
 
-			eventMgr.addListener(mine[i], PlayerMineEvent.class);
+			eventMgr.addListener(mine[i], CollisionEvent.class);
 			mines.addChild(mine[i]);
 		}
 

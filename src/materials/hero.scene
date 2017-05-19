@@ -1,0 +1,20 @@
+<scene previous_export_time="1495165749.794714" export_time="1495171323.900098" formatVersion="1.0.1" exported_by="Austin" >
+  <nodes >
+    <node name="autoUnwrapOrigSelection pPlane1" >
+      <position z="-0.154250" y="-0.009425" x="-0.013840" />
+      <rotation qw="0.496708" qy="0.503270" qx="0.496708" qz="-0.503270" />
+      <scale z="1.000000" y="1.000000" x="1.000000" />
+      <game >
+        <sensors />
+        <actuators />
+      </game>
+      <entity inertia_tensor="0.4000000059604645" meshFile="autoUnwrapOrigSelection pPlane1.mesh" ghost="False" name="autoUnwrapOrigSelection pPlane1" mass="1.0" lock_trans_z="False" lock_trans_y="False" lock_trans_x="False" velocity_min="0.0" lock_rot_z="False" friction_x="1.0" anisotropic_friction="False" physics_type="STATIC" velocity_max="0.0" lock_rot_x="False" damping_rot="0.10000000149011612" lock_rot_y="False" friction_z="1.0" mass_radius="1.0" actor="False" damping_trans="0.03999999910593033" friction_y="1.0" />
+    </node>
+  </nodes>
+  <externals />
+  <environment >
+    <colourAmbient r="0.0" g="0.0" b="0.0" />
+    <colourBackground r="0.05087608844041824" g="0.05087608844041824" b="0.05087608844041824" />
+    <colourDiffuse r="0.05087608844041824" g="0.05087608844041824" b="0.05087608844041824" />
+  </environment>
+</scene>

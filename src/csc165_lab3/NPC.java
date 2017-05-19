@@ -27,7 +27,7 @@ public class NPC extends Group implements IEventListener {
 	}
 
 	public boolean handleEvent(IGameEvent event) {
-		PlayerMineEvent c = (PlayerMineEvent) event;
+		CollisionEvent c = (CollisionEvent) event;
         c.playSound();
         return true;
 	}
