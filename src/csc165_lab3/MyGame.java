@@ -683,7 +683,7 @@ public class MyGame extends BaseGame {
 		display = new MyDisplaySystem(displayDialog.getSelectedDisplayMode().getWidth(),
 				displayDialog.getSelectedDisplayMode().getHeight(),
 				displayDialog.getSelectedDisplayMode().getBitDepth(),
-				displayDialog.getSelectedDisplayMode().getRefreshRate(), true, "sage.renderer.jogl.JOGLRenderer");
+				displayDialog.getSelectedDisplayMode().getRefreshRate(), displayDialog.isFullScreenModeSelected(), "sage.renderer.jogl.JOGLRenderer");
 		System.out.println("\nWaiting for display creation...");
 		int count = 0;
 
