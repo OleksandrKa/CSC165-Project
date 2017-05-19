@@ -12,9 +12,8 @@ import myGameEngine.GameServerTCP;
 
 
 public class Starter{
+	public static Scanner s = new Scanner(System.in);
 	public static void main(String[] args){
-		@SuppressWarnings("resource")
-		Scanner s = new Scanner(System.in);
 		System.out.print("Host or Join game? (h/j): ");
 		String input = s.nextLine();
 		if(input.charAt(0) == 'h'){
@@ -26,8 +25,6 @@ public class Starter{
 	}
 	
 	public static void hostServer(){
-		@SuppressWarnings("resource")
-		Scanner s = new Scanner(System.in);
 		System.out.print("Enter hosting port: ");
 		int port = s.nextInt();
 		
@@ -64,8 +61,6 @@ public class Starter{
 	}
 	
 	public static void joinServer(){
-		@SuppressWarnings("resource")
-		Scanner s = new Scanner(System.in);
 		System.out.print("Enter server IP address: ");
 		String ip = s.nextLine();
 		System.out.print("Enter server port: ");

@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Random;
 import java.util.Scanner;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
@@ -223,20 +224,19 @@ public class MyGame extends BaseGame {
 					PlayerMineEvent collisionEvent = new PlayerMineEvent(s, sounds);
 					eventMgr.triggerEvent(collisionEvent);
 					
-					Vector3D mnLoc = s.getLocalTranslation().getCol(3);
-					System.out.printf("\n %f %f %f \n", mnLoc.getX(), mnLoc.getY(), mnLoc.getZ());
-					
 					//explosionSound.play(100, false);
-			    	//System.out.println(this.removeGameWorldObject(s));
-			    	//mines.removeChild(s);
+			    	System.out.println(this.removeGameWorldObject(s));
+			    	mines.removeChild(s);
 			    	
-			    	/*//Game End Code
+			    	//Game End Code
 			    	this.setGameOver(true);
-			    	System.out.println("\n   OH NO! You triggered a SCIENCE Mine and blew up the planet! :(\n");
-			    	display.close();
-			    	Scanner input = new Scanner(System.in);
-			    	input.nextLine();*/
-			    	
+			    	System.out.println("\n   OH NO! You triggered a SCIENCE Mine and blew up! :(\n");
+			    	try {
+						TimeUnit.SECONDS.sleep(5);
+					} catch (InterruptedException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
 			    	break;
 				}
 			}
@@ -249,11 +249,14 @@ public class MyGame extends BaseGame {
 				eventMgr.triggerEvent(collisionEvent);
 				
 				//Game End Code
-				/*this.setGameOver(true);
+				this.setGameOver(true);
 				System.out.println("\n   Horray! You've reunited with your SCIENCE Partner!\n");
-				display.close();
-		    	Scanner input = new Scanner(System.in);
-		    	input.nextLine();*/
+				try {
+					TimeUnit.SECONDS.sleep(5);
+				} catch (InterruptedException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
 			}
 
 		}
