@@ -37,7 +37,7 @@ public class MyDisplaySystem implements IDisplaySystem {
 			throw new RuntimeException("Unable to find renderer");
 		}
 		rendererCanvas = myRenderer.getCanvas();
-		myFrame = new JFrame("SpaceFarming3D - Part 2!");
+		myFrame = new JFrame("Mine Sweeper");
 		myFrame.add(rendererCanvas);
 		// initialize the screen with the specified parameters
 		DisplayMode displayMode = new DisplayMode(width, height, bitDepth, refreshRate);

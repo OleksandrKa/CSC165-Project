@@ -1,0 +1,1 @@
+java -Dsun.java2d.d3d=false csc165_lab3.Starter

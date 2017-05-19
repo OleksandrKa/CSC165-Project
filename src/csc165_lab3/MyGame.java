@@ -214,15 +214,29 @@ public class MyGame extends BaseGame {
 		// Update 3D Sound direction
 		//npcSound.setLocation(new Point3D(mines.getWorldTranslation().getCol(3)));
 		setEarParameters();
-
+		if(time > 100){
+			
+		
 		for (SceneNode s : mines) {
 			if (s != null) {
 				if (player.model.getWorldBound().intersects(s.getWorldBound())) {
 					PlayerMineEvent collisionEvent = new PlayerMineEvent(s, sounds);
 					eventMgr.triggerEvent(collisionEvent);
+					
+					Vector3D mnLoc = s.getLocalTranslation().getCol(3);
+					System.out.printf("\n %f %f %f \n", mnLoc.getX(), mnLoc.getY(), mnLoc.getZ());
+					
 					//explosionSound.play(100, false);
-			    	System.out.println(this.removeGameWorldObject(s));
-			    	mines.removeChild(s);
+			    	//System.out.println(this.removeGameWorldObject(s));
+			    	//mines.removeChild(s);
+			    	
+			    	/*//Game End Code
+			    	this.setGameOver(true);
+			    	System.out.println("\n   OH NO! You triggered a SCIENCE Mine and blew up the planet! :(\n");
+			    	display.close();
+			    	Scanner input = new Scanner(System.in);
+			    	input.nextLine();*/
+			    	
 			    	break;
 				}
 			}
@@ -233,8 +247,17 @@ public class MyGame extends BaseGame {
 				player.model.translate(0, 1, 0);
 				PlayerMineEvent collisionEvent = new PlayerMineEvent(player.model, sounds);
 				eventMgr.triggerEvent(collisionEvent);
+				
+				//Game End Code
+				/*this.setGameOver(true);
+				System.out.println("\n   Horray! You've reunited with your SCIENCE Partner!\n");
+				display.close();
+		    	Scanner input = new Scanner(System.in);
+		    	input.nextLine();*/
 			}
 
+		}
+		
 		// tell BaseGame to update game world state
 		super.update(elapsedTimeMS);
 
@@ -474,7 +497,7 @@ public class MyGame extends BaseGame {
 
 		for (int i = 0; i < mineCount; i++) {
 
-			mineLoc[i] = new Point3D(randomGenerator.nextInt(285 + 1) + 5, 0, randomGenerator.nextInt(285 + 1) + 5);
+			mineLoc[i] = new Point3D(randomGenerator.nextInt(285 - 50*2 + 1) + 50, 0, randomGenerator.nextInt(285 - 50*2 + 1) + 50);
 
 			mine[i] = new NPC();
 			mine[i].translate((float) mineLoc[i].getX(), (float) mineLoc[i].getY(), (float) mineLoc[i].getZ());
@@ -731,14 +754,6 @@ public class MyGame extends BaseGame {
 		if (Math.abs(npcP.getX() - avLoc.getX()) <= mineDistance
 				&& Math.abs(npcP.getZ() - avLoc.getZ()) <= mineDistance) {
 			isNear = true;
-		}
-
-		if (thisClient != null && thisClient.entity != null) {
-			Vector3D ghostLoc = thisClient.entity.model.getLocalTranslation().getCol(3);
-			if (Math.abs(npcP.getX() - ghostLoc.getX()) <= mineDistance
-					&& Math.abs(npcP.getZ() - ghostLoc.getZ()) <= mineDistance) {
-				isNear = true;
-			}
 		}
 
 		npcc.setNearFlag(isNear);
